@@ -1,8 +1,8 @@
 import express, { type Request, type Response, type Router } from "express";
 import { join } from "path";
 import { parseServiceToken } from "../../utils/serviceToken.ts";
-import { db } from "../..//utils/db.ts";
-import { getRegion } from "../..//utils/other.ts";
+import { db } from "../../utils/db.ts";
+import { getRegion } from "../../utils/other.ts";
 import Mii from "@pretendonetwork/mii-js";
 import { logger } from "../../utils/logger.ts";
 
@@ -36,6 +36,8 @@ router.get("/setup.html", async (req: Request, res: Response): Promise<any> => {
         return res.sendStatus(404);
     }
 
+    const step = (req.query.step as string) || "";
+
     const account = await db("account")
         .where({
             pid: token.pid,
@@ -43,6 +45,20 @@ router.get("/setup.html", async (req: Request, res: Response): Promise<any> => {
             access_key: token.access_key,
         })
         .first();
+
+    // If account exists and step=favorites, allow re-entry for editing
+    if (account && step === "favorites") {
+        const settings = await db("settings").where({ pid: token.pid }).first();
+        return res.render("setup.ejs", {
+            pid: token.pid,
+            country: token.country,
+            lang: lang,
+            region: getRegion(token.country!),
+            tv_provider_id: settings?.tv_provider_id || "",
+            tv_provider_tz: settings?.tv_provider_tz || "",
+            step: "favorites"
+        });
+    }
 
     // If account, redirect to default
     if (account) {
@@ -53,7 +69,10 @@ router.get("/setup.html", async (req: Request, res: Response): Promise<any> => {
         pid: token.pid,
         country: token.country,
         lang: lang,
-        region: getRegion(token.country!)
+        region: getRegion(token.country!),
+        tv_provider_id: "",
+        tv_provider_tz: "",
+        step: ""
     });
 });
 

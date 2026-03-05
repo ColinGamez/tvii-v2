@@ -15,29 +15,11 @@
   </script>
   <script src="/js/jquery-3.7.1.min.js" onerror="handleScriptError('jquery-3.7.1.min.js')"></script>
   <script src="/js/vino.js?v=15" onerror="handleScriptError('vino.js')"></script>
-  <%
-var scriptFile = "loc-en_US.js"; // default
-
-if (typeof lang === "string") {
-  var l = lang.toLowerCase();
-
-  if (l === "es") {
-    scriptFile = "loc-es_419.js";
-  } else if (l === "fr") {
-    scriptFile = "loc-fr_CA.js";
-  } else if (l === "ja") {
-    scriptFile = "loc-ja_JP.js";
-  } else if (l === "en") {
-    scriptFile = "loc-en_US.js";
-  }
-}
-%>
-
-  <script src="/js/<%= scriptFile %>?v=15" onerror="handleScriptError('<%= scriptFile %>')"></script>
+  <%- include('partials/locale-script', { lang }) %>
 
 </head>
 
-<body data-pid="<%= pid %>" data-lang="<%= lang %>" data-country="<%= country %>" data-region="<%= region %>">
+<body data-pid="<%= pid %>" data-lang="<%= lang %>" data-country="<%= country %>" data-region="<%= region %>"<% if (tv_provider_id) { %> data-tv-provider-id="<%= tv_provider_id %>"<% } %><% if (tv_provider_tz) { %> data-tv-provider-tz="<%= tv_provider_tz %>"<% } %><% if (step) { %> data-step="<%= step %>"<% } %>>
   <!--preload some important assets -->
   <img style="display: none" src="/img/button-bg.png" width="0" height="0" />
   <img style="display: none" src="/img/button-bg-black.png" width="0" height="0" />

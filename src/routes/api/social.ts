@@ -212,8 +212,8 @@ router.get(
                 }
             }
 
-            // TypeScript needed the "as string" for some reason
-            if (env.VINO_JP_STAFF_PIDS.includes(pid as string)) {
+            // STAFF_PIDS is number[] — compare with Number(pid)
+            if (env.VINO_JP_STAFF_PIDS.includes(Number(pid))) {
                 user_id = "??????????"
             }
 

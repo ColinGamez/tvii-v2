@@ -1,5 +1,5 @@
 import type { Request } from "express";
-import { env } from "../env.ts";
+import { env, APP_VERSION } from "../env.ts";
 import { logger } from "./logger.ts";
 
 const isDev = ["dev", "stg"].includes(
@@ -27,7 +27,7 @@ export function parseServiceToken(req: Request): {
             pid: 0,
             access_key: "dev",
             serial_number: "DEV000000000",
-            version: "v1.2.6",
+            version: APP_VERSION,
             country: "JP",
         };
     }

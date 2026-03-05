@@ -2,11 +2,11 @@ import { parseServiceToken } from "../utils/serviceToken.ts";
 import { type Request, type Response, type NextFunction } from "express";
 import {db, db_whitelist} from "../utils/db.ts";
 import { logger } from "../utils/logger.ts";
-import { env } from "../env.ts";
+import { env, APP_VERSION } from "../env.ts";
 import { join } from "path";
 
 const environment = env.VINO_JP_CONFIG_ENV as "dev" | "stg" | "prod";
-const latest_version = "v1.2.6";
+const latest_version = APP_VERSION;
 
 /** Check whitelist for a given PID. Returns true if allowed, false otherwise. */
 async function checkWhitelist(pid: string): Promise<boolean> {

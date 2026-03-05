@@ -27,6 +27,9 @@ const optPort = (fallback = 9000) =>
     : z.coerce.number().int().min(1).max(65535);
 
 // Type-safe environment variables
+/** Single source of truth for the app version string. */
+export const APP_VERSION = "v1.2.6";
+
 export const env = createEnv({
   server: {
     VINO_JP_CONFIG_PORT: z.coerce.number().min(1).max(65535),

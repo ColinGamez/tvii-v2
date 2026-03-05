@@ -471,7 +471,7 @@ var tvii = {
             );
         }
 
-        const stateData = pushData || { __internal__: true };
+        var stateData = pushData || { __internal__: true };
 
         if (isPush) {
             window.history.pushState(
@@ -1887,6 +1887,88 @@ function initVinoSetup() {
         });
     }
 
+    // ── Edit-favorites mode (?step=favorites) ──────────────────
+    var isFavoritesEdit = window.location.search.indexOf("step=favorites") !== -1;
+
+    if (isFavoritesEdit) {
+        var bodyProvId = $("body").attr("data-tv-provider-id");
+        var bodyProvTz = $("body").attr("data-tv-provider-tz");
+
+        if (bodyProvId && bodyProvTz) {
+            // Jump straight to the favorites modal
+            changeSetupModal($("#setup-modal-4"), $("#setup-modal-1"));
+
+            // Override Back → return to home
+            var favBackBtn = $("#setup-modal-4 .btn-1");
+            favBackBtn.removeAttr("data-show").removeAttr("data-hide");
+            favBackBtn.off("click").on("click", function () {
+                vino.soundPlayVolume("SE_CLOSE", 30);
+                window.location.href = "/index.html";
+            });
+
+            // Override Continue → save & return
+            var favDoneBtn = $("#setup-modal-4 .btn-2");
+            favDoneBtn.removeAttr("data-show").removeAttr("data-hide");
+            favDoneBtn.text(tvii.getLoc("vino.done"));
+            favDoneBtn.off("click").on("click", function () {
+                if (favDoneBtn.hasClass("disabled")) return;
+                vino.soundPlayVolume("SE_DECIDE", 30);
+                favDoneBtn.addClass("disabled");
+
+                var favoriteChannels = [];
+                var favEls = $(".channel-container a.fav");
+                for (var i = 0; i < favEls.length; i++) {
+                    var id = favEls.eq(i).attr("data-channel-full-id");
+                    if (id) favoriteChannels.push(id);
+                }
+
+                vino.loading_setIconAppear(true);
+                tvii.sendXHR(
+                    "POST",
+                    "/api/v1/act/favorites",
+                    function () {
+                        vino.loading_setIconAppear(false);
+                        vino.soundPlayVolume("SE_COMMON_FINISH", 30);
+                        window.location.href = "/index.html";
+                    },
+                    function () {
+                        vino.loading_setIconAppear(false);
+                        favDoneBtn.removeClass("disabled");
+                        tvii.alert(tvii.getLoc("vino.error.generic"));
+                    },
+                    ["Content-Type: application/json"],
+                    JSON.stringify({ channels: favoriteChannels })
+                );
+            });
+
+            // Load channels for the user's existing provider
+            vino.loading_setIconAppear(true);
+            var favEndpoint = "/api/v1/providers/countries/" + country + "/" + bodyProvId + "/channels?tz_name=" + bodyProvTz;
+
+            tvii.sendXHRNoTimeout("GET", favEndpoint, function (responseText) {
+                var channel_list = JSON.parse(responseText);
+                setUpFavoriteCandidates(channel_list, false);
+
+                // Fetch existing favorites and pre-mark them
+                tvii.sendXHRNoTimeout("GET", "/api/v1/act/favorites", function (favText) {
+                    var favData = JSON.parse(favText);
+                    if (favData.channels && favData.channels.length) {
+                        for (var fi = 0; fi < favData.channels.length; fi++) {
+                            var chId = favData.channels[fi];
+                            $(".channel-container a[data-channel-full-id='" + chId + "']").addClass("fav");
+                        }
+                    }
+                    vino.loading_setIconAppear(false);
+                }, function () {
+                    vino.loading_setIconAppear(false);
+                });
+            }, function () {
+                vino.loading_setIconAppear(false);
+                tvii.alert(tvii.getLoc("vino.error.generic"));
+            });
+        }
+    }
+
     usZipCodeInput.on("input change", onZipCodeUpdate);
     caZipCodeInput.on("input change", onZipCodeUpdate);
 
@@ -2025,17 +2107,19 @@ function initVinoHome() {
             default: isSendingIR = false; return;
         }
 
+        function padStr3(s) { while (s.length < 3) s = "0" + s; return s; }
+
         var num = parseInt(chNum, 10);
         var threeDigit;
         if (broad === "dt") {
-            threeDigit = String(num * 10 + 1).padStart(3, "0");
+            threeDigit = padStr3(String(num * 10 + 1));
         } else if (broad === "bs") {
             var bsMap = {1:"101",2:"102",3:"103",4:"141",5:"151",
                          6:"161",7:"171",8:"181",9:"191",10:"200",
                          11:"211",12:"222",13:"231",14:"234",15:"236"};
             threeDigit = bsMap[num] || String((num + 10) * 10 + 1);
         } else {
-            threeDigit = String(num).padStart(3, "0");
+            threeDigit = padStr3(String(num));
         }
 
         var d0 = digitIrCode(threeDigit[0], digitBase);
@@ -2196,11 +2280,11 @@ function initVinoHome() {
             switch (action) {
                 case "settings":
                     // Go to setup page
-                    window.location.href = "/setup";
+                    window.location.href = "/setup.html";
                     break;
                 case "favorites":
-                    // Reuse the setup page (favorites step)
-                    window.location.href = "/setup";
+                    // Jump directly to favorites editing step
+                    window.location.href = "/setup.html?step=favorites";
                     break;
                 case "manual":
                     // Open the electronic manual
@@ -2293,15 +2377,15 @@ function initVinoHome() {
                 return;
             }
 
-            const maxScroll = container.scrollHeight - container.clientHeight;
-            const top = container.scrollTop;
-            const delta = Math.abs(top - lastScrollTop);
+            var maxScroll = container.scrollHeight - container.clientHeight;
+            var top = container.scrollTop;
+            var delta = Math.abs(top - lastScrollTop);
 
-            const nearTop = top <= 1;
-            const nearBottom = top >= Math.max(0, maxScroll - 1);
+            var nearTop = top <= 1;
+            var nearBottom = top >= Math.max(0, maxScroll - 1);
 
-            const awayFromTop = top > EDGE_RESET_PX;
-            const awayFromBottom = top < maxScroll - EDGE_RESET_PX;
+            var awayFromTop = top > EDGE_RESET_PX;
+            var awayFromBottom = top < maxScroll - EDGE_RESET_PX;
 
             // Entering top edge
             if (nearTop && !edgeLockTop) {
@@ -2691,9 +2775,13 @@ function initVinoHome() {
         var use24Hour = lang === "es" || lang === "fr" || lang === "ja";
         var useDayFirst = lang === "es" || lang === "fr" || lang === "ja";
 
-        // hide AM/PM if 24h format
+        // For 24h format, hide AM/PM separator; for 12h, updateClock sets AM/PM
         if (sepSpan) {
-            sepSpan.innerHTML = "H<br>R";
+            if (use24Hour) {
+                sepSpan.style.display = "none";
+            } else {
+                sepSpan.textContent = "";
+            }
         }
 
         var days = [
@@ -2888,52 +2976,43 @@ function initVinoHome() {
                     img = "/image/show/426x240/" + details.program.showPicture;
                 }
 
-                var canSetDetailInfo = true;
+                var programDescription = details.program.description;
+                programDetails.find(".program-description > p").text(programDescription);
 
-                if (canSetDetailInfo) {
-                    var programDescription = details.program.description;
-                    programDetails.find(".program-description > p").text(programDescription);
+                programDetails.find(".pname").text(programName);
 
-                    programDetails.find(".pname").text(programName);
+                var hasYear = details.program.year && details.program.year.length;
+                var hasShowType = details.program.showType && details.program.showType.length;
+                var hasTVRating = details.program.rating && details.program.rating.length;
+                var hasCC = details.program.isCC;
+                var programDuration = details.program.duration;
 
-                    var hasYear = details.program.year && details.program.year.length;
-                    var hasShowType = details.program.showType && details.program.showType.length;
-                    var hasTVRating = details.program.rating && details.program.rating.length;
-                    var hasCC = details.program.isCC;
-                    var programDuration = details.program.duration;
+                var parts = [];
 
-                    var parts = [];
+                if (hasYear) parts.push(details.program.year);
+                if (hasTVRating) parts.push(details.program.rating);
+                if (hasCC) parts.push("CC");
+                if (hasShowType) parts.push(details.program.showType);
+                parts.push(programDuration + "min")
 
-                    if (hasYear) parts.push(details.program.year);
-                    if (hasTVRating) parts.push(details.program.rating);
-                    if (hasCC) parts.push("CC");
-                    if (hasShowType) parts.push(details.program.showType);
-                    parts.push(programDuration + "min")
+                var otherDetail = parts.join(" · ");
 
-                    var otherDetail = parts.join(" · ");
+                programDetails.find(".chnum").text(otherDetail);
 
-                    programDetails.find(".chnum").text(otherDetail);
+                var programStart = tvii.parseLocalDateTime(details.program.start);
+                var programEnd = tvii.parseLocalDateTime(details.program.end);
 
-                    var programStart = tvii.parseLocalDateTime(details.program.start);
-                    var programEnd = tvii.parseLocalDateTime(details.program.end);
+                var timeStr = formatAMPMWithDate(programStart, programEnd);
+                programDetails.find(".date").text(timeStr);
 
-                    var timeStr = formatAMPMWithDate(programStart, programEnd);
-                    programDetails.find(".date").text(timeStr);
-
-                    if (programEpisode) {
-                        programDetails.find(".channel-detail").removeClass("no-episode");
-                        programDetails.find(".pepisode").text(programEpisode);
-                    } else {
-                        programDetails.find(".channel-detail").addClass("no-episode");
-                        programDetails.find(".pepisode").text("");
-                    }
-                    programDetails.find(".program-airing-details").show();
+                if (programEpisode) {
+                    programDetails.find(".channel-detail").removeClass("no-episode");
+                    programDetails.find(".pepisode").text(programEpisode);
                 } else {
-                    programDetails
-                        .find(".program-airing-image > .img")
-                        .css("background-image", "url(/images/cdn/tvp" + img + ")");
-                    programDetails.find(".program-airing-image").show();
+                    programDetails.find(".channel-detail").addClass("no-episode");
+                    programDetails.find(".pepisode").text("");
                 }
+                programDetails.find(".program-airing-details").show();
 
                 requestMiiversePostProgPreview(episodeID);
                 programDetails.attr("data-prlistid", programListingID);
@@ -2991,7 +3070,7 @@ function initVinoHome() {
 
     function setMiiversePostProgPreview(postObj) {
         var miiversePrev = $(".bottom .miiverse-preview");
-        const firstPost = postObj;
+        var firstPost = postObj;
         if (!firstPost) {
             miiversePrev.find("span").addClass("placeholder");
             miiversePrev
@@ -3066,7 +3145,7 @@ function initVinoHome() {
                 // If this is not the latest request, ignore it
                 if (thisReq !== currentMiiversePreviewReq) return;
 
-                const firstPost = posts[0];
+                var firstPost = posts[0];
                 if (!firstPost) {
                     miiversePrev.find("span").addClass("placeholder");
                     miiversePrev
@@ -3652,8 +3731,8 @@ function initVinoHome() {
 
                 prodet.find(".program-description > p").text(programDescription);
 
-                const span = head2.find("p > span");
-                const p2 = head2.find("p");
+                var span = head2.find("p > span");
+                var p2 = head2.find("p");
 
                 if (!span.length || !p2.length) return;
 
@@ -3668,8 +3747,8 @@ function initVinoHome() {
                 p2.removeClass("marquee");
 
                 // force layout
-                const pEl = p2[0];
-                const spanEl = span[0];
+                var pEl = p2[0];
+                var spanEl = span[0];
 
                 pEl.offsetWidth;
                 spanEl.offsetWidth;
@@ -3819,6 +3898,8 @@ function initVinoHome() {
                     } else if (isGuideTab) {
                         vino.navi_setBaseVisibilityOnKeyEvent(true);
                         grid.show();
+                        // Restore guide grid scroll position
+                        $(".guide-container").scrollTop(guideGridScroll);
                     }
                     disableTopBotHeaders(false);
                 }
@@ -5059,10 +5140,6 @@ function initVinoHome() {
     }
 
     $(".miiverse-button").on("click", function (e) {
-        var isProgramList = $(".program-list").is(":visible");
-        if (isProgramList) {
-
-        }
         if (isHeaderButtonBlocked) return;
         if (e.originalEvent) {
             if (!vino.navi_getRect()) {
@@ -5838,6 +5915,7 @@ function initVinoHome() {
     }
 
     var guideWindowOffset = 0; // hours offset from "now" for guide nav
+    var guideGridScroll = 0; // saved scroll position for guide grid
 
     function initGuideTab() {
         abortReqsXhr();
@@ -5875,6 +5953,8 @@ function initVinoHome() {
         });
     }
 
+    function guidePad(n) { return n < 10 ? "0" + n : "" + n; }
+
     function loadGuideGrid() {
         // Compute a 3-hour window starting from the rounded current hour + offset
         var offsetSeconds = tvii.getUtcOffset();
@@ -5886,7 +5966,7 @@ function initVinoHome() {
         // Apply window offset (hours)
         localD = new Date(localD.getTime() + guideWindowOffset * 3600000);
 
-        function pad(n) { return n < 10 ? "0" + n : "" + n; }
+        var pad = guidePad;
         var startStr = localD.getUTCFullYear() + "-" + pad(localD.getUTCMonth() + 1) + "-" +
             pad(localD.getUTCDate()) + " " + pad(localD.getUTCHours()) + ":00:00";
 
@@ -5911,6 +5991,7 @@ function initVinoHome() {
     }
 
     function renderGuideGrid(guide, windowStart, durationMinutes) {
+        var pad = guidePad;
         var data = guide.data;
         var windowStartSec = windowStart.getTime() / 1000;
         var windowEndSec = windowStartSec + durationMinutes * 60;
@@ -6062,8 +6143,6 @@ function initVinoHome() {
         });
 
         gv.show();
-
-        function pad(n) { return n < 10 ? "0" + n : "" + n; }
     }
 
     function openGuideProgramDetail(prog, channel) {
@@ -6106,6 +6185,10 @@ function initVinoHome() {
         }
         det.find(".date").text(dateStr);
 
+        // Save guide scroll position before showing details
+        var gc = $(".guide-container");
+        if (gc.length) guideGridScroll = gc.scrollTop();
+
         $(".guide-view").hide();
         detPage.show();
 
@@ -6130,6 +6213,8 @@ function initVinoHome() {
             detPage.hide();
             $(".footer .bottom").removeClass("prfuldet").addClass("guideopt");
             $(".guide-view").show();
+            // Restore guide scroll position
+            $(".guide-container").scrollTop(guideGridScroll);
             $(this).off("click.guidedet");
         });
     }

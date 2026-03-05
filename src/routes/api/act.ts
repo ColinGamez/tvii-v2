@@ -301,6 +301,43 @@ router.get("/favorites", async (req: Request, res: Response): Promise<any> => {
     }
 });
 
+router.post("/favorites", async (req: Request, res: Response): Promise<any> => {
+    try {
+        const token = parseServiceToken(req);
+        if (!token && !isDev) {
+            return res.status(401).json({ status: "error", error: "Unauthorized" });
+        }
+        const pid = token?.pid ?? 0;
+        const { channels } = req.body;
+
+        if (!Array.isArray(channels)) {
+            return res.status(400).json({ status: "error", error: "channels must be an array" });
+        }
+
+        const now = new Date().toISOString();
+        const uniqueChannels = [...new Set(channels)] as string[];
+
+        await db.transaction(async (trx) => {
+            await trx("favorite_channels").where("pid", pid).del();
+
+            if (uniqueChannels.length > 0) {
+                const rows = uniqueChannels.map((ch) => ({
+                    create_time: now,
+                    pid: pid,
+                    channel_id: ch,
+                }));
+                await trx("favorite_channels").insert(rows);
+            }
+        });
+
+        logger.info("Favorites updated for pid %s (%d channels)", pid, uniqueChannels.length);
+        return res.json({ status: "ok" });
+    } catch (err: any) {
+        logger.error("Error updating favorites: %s", err.message);
+        return res.status(500).json({ status: "error", error: "Internal server error" });
+    }
+});
+
 router.get("/reminders", async (req: Request, res: Response): Promise<any> => {
     try {
         const token = parseServiceToken(req);
