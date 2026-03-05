@@ -538,7 +538,7 @@ async function scrapeDetail(eventId: string): Promise<GGuideProgramDetail | null
 let cachedChannels: Map<string, GGuideChannel> = new Map();
 let cachedPrograms: GGuideProgram[] = [];
 let lastGridRefresh = 0;
-const gridRefreshMs = (env.VINO_JP_XMLTV_REFRESH_MINUTES ?? 30) * 60 * 1000;
+const gridRefreshMs = (env.VINO_JP_GGUIDE_REFRESH_MINUTES ?? 30) * 60 * 1000;
 
 // ── Grid refresh logic ───────────────────────────────────────
 

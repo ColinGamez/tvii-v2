@@ -153,6 +153,7 @@ button {
     background: url(/img/bg_help.png) center center no-repeat;
     -webkit-background-size: 40px 40px;
     background-size: 40px 40px;
+    -webkit-border-radius: 20px;
     border-radius: 20px;
     opacity: 0.9;
 }
@@ -165,8 +166,7 @@ button {
 
 .favorite {}
 
-.header.pr-details>p,
-.header.miiverse>.olv-title {
+.header.pr-details>p {
     white-space: nowrap;
     color: #fff;
     text-shadow: 0px 2px 1px rgba(0, 0, 0, 0.40);
@@ -201,7 +201,15 @@ button {
 }
 
 .header.miiverse>.olv-title {
+    white-space: nowrap;
+    color: #fff;
+    text-shadow: 0px 2px 1px rgba(0, 0, 0, 0.40);
+    font-size: 27px;
+    display: block;
     width: 530px;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    text-align: center;
 }
 
 .header.miiverse>.olv-channel {
@@ -222,6 +230,7 @@ button {
     color: #fff;
     font-size: 12px;
     padding: 1px 8px;
+    -webkit-border-radius: 3px;
     border-radius: 3px;
     white-space: nowrap;
     text-shadow: none;
@@ -376,9 +385,11 @@ button {
     color: #555;
     background: rgba(255, 255, 255, 0.7);
     border: 1px solid #bbb;
+    -webkit-border-radius: 4px;
     border-radius: 4px;
     text-decoration: none;
     -webkit-transition: background 0.15s, color 0.15s;
+    transition: background 0.15s, color 0.15s;
 }
 
 .channel-filter .chf-btn.active {
@@ -1166,13 +1177,16 @@ button {
     background: url(/img/bg_help.png) 0 0 no-repeat;
     width: 60px;
     height: 60px;
+    -webkit-border-radius: 30px;
     border-radius: 30px;
+    -webkit-box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.25);
     box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.25);
 }
 
 .channel-search-container input {
     display: block;
     margin: auto;
+    -webkit-border-radius: 5px;
     border-radius: 5px;
     border: 2px solid #a3a3a3;
     width: 560px;

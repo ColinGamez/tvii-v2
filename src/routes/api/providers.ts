@@ -100,70 +100,6 @@ function jstNow(): number {
     return Math.floor(Date.now() / 1000);
 }
 
-/**
- * Infer a TVii showTypeID from JP channel name + program title.
- * The single-char ID drives genre badge color in the client's getProgramGenre().
- *   "M" = Movie, "O" = Sports, "Y" = News, "A" = Animated/Anime,
- *   "W" = Music, "D" = Documentary, "6" = Comedy/Variety,
- *   "1" = Series/Drama (default)
- */
-function inferJpGenreId(channelName: string, title: string, category: string | null): string {
-    const ch = (channelName || "").toLowerCase();
-    const t = (title || "").toLowerCase();
-    const cat = (category || "").toLowerCase();
-
-    // Movie channels / movie keywords
-    if (/シネマ|映画|ムービー|movie|cinema|ＦＯＸムービー|スターチャンネル|イマジカ/.test(ch) ||
-        /映画|劇場版|ロードショー/.test(t)) {
-        return "M";
-    }
-
-    // Sports channels / keywords
-    if (/sport|スポーツ|ゴルフ|j\s*sports|gaora|サッカー|スカサカ|fighting|サムライ|グランプリ|ジータス|スカイa|exスポーツ|foxスポーツ/.test(ch) ||
-        /野球|サッカー|ゴルフ|テニス|ラグビー|バスケ|格闘|ボクシング|相撲|五輪|オリンピック/.test(t)) {
-        return "O";
-    }
-
-    // Anime / animation channels
-    if (/アニメ|アニマックス|キッズ|カートゥーン|animax|anime/.test(ch) ||
-        /アニメ/.test(t)) {
-        return "A";
-    }
-
-    // News channels
-    if (/ニュース|news|ＣＮＮ|ＢＢＣ|日経/.test(ch) ||
-        /ニュース|報道|news/.test(t)) {
-        return "Y";
-    }
-
-    // Music channels
-    if (/ミュージック|music|ＭＴＶ|スペースシャワー|歌謡/.test(ch) ||
-        /音楽|ライブ|コンサート/.test(t)) {
-        return "W";
-    }
-
-    // Documentary / history / science
-    if (/ディスカバリー|discovery|ナショジオ|ヒストリー|history|ナショナル/.test(ch) ||
-        /ドキュメンタリー|ドキュメント/.test(t)) {
-        return "D";
-    }
-
-    // Variety / comedy / entertainment
-    if (/バラエティ|エンタメ|エンターテイメント/.test(ch) ||
-        /バラエティ|お笑い|コント/.test(t)) {
-        return "6";
-    }
-
-    // Drama (explicit)
-    if (/ドラマ|韓流|時代劇|ＡＸＮ/.test(ch) ||
-        /ドラマ/.test(t)) {
-        return "1";
-    }
-
-    // Default: series
-    return "1";
-}
-
 router.get("/countries/:country/:zipcode", async (req: Request, res: Response) => {
     const { zipcode, country } = req.params;
     const endpoint = `provider:${country}:zipcode:${zipcode}`;
@@ -1017,6 +953,11 @@ router.get("/lineup/:country/:provider_id", async (req: Request, res: Response) 
 router.get("/now", async (req: Request, res: Response) => {
     const { channelId, country, provider_id } = req.query as any;
     try {
+        const token = parseServiceToken(req);
+        if (!token.ok) {
+            return res.status(401).json({ hasError: 1, error: { code: 401, message: "Unauthorized" } });
+        }
+
         if (country !== "JP" || provider_id !== "gguide" || !channelId) {
             return res.status(400).json({ hasError: 1, error: { code: 400, message: "Bad request" } });
         }

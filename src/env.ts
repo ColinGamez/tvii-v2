@@ -90,6 +90,7 @@ export const env = createEnv({
       .default("false")
       .transform((v) => v.toLowerCase() === "true"),
     VINO_JP_GGUIDE_AREA: z.string().optional().default("23"), // Tokyo = 23
+    VINO_JP_GGUIDE_REFRESH_MINUTES: z.coerce.number().int().min(1).optional().default(30),
 
     // ── Kodi PVR integration (channel switching) ─────────────
     VINO_JP_KODI_ENABLED: z

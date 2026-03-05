@@ -4726,7 +4726,7 @@ function initVinoHome() {
             "&country=" + tvii.getCountry() +
             "&provider_id=" + tvii.getTVProviderID(),
             function (responseText) {
-                var resp = JSON.parse(responseText);
+                try { var resp = JSON.parse(responseText); } catch (e) { return; }
                 if (resp.hasError || !resp.data) return;
 
                 var program = resp.data.program;
@@ -4812,7 +4812,7 @@ function initVinoHome() {
 
         // Get the first (newest) post ID to check for newer posts
         var $firstPost = $(".miiverse-modal .post-container .post").first();
-        var newestPostId = $firstPost.data("post-id") || null;
+        var newestPostId = $firstPost.attr("data-post-id") || null;
 
         if (!newestPostId) return; // No posts loaded yet
 
@@ -4842,6 +4842,13 @@ function initVinoHome() {
                 }
                 container.prepend(frag);
                 miiverseLoadedCount += newPosts.length;
+
+                // Trim excess posts from the bottom to prevent unbounded DOM growth
+                var excess = miiverseLoadedCount - miiverseMaxPosts;
+                if (excess > 0) {
+                    container.find(".post").slice(-excess).remove();
+                    miiverseLoadedCount = miiverseMaxPosts;
+                }
             },
             function () {
                 // Silent fail on auto-refresh
@@ -6105,8 +6112,12 @@ function initVinoHome() {
         tvii.pushStateWithQuery("scene", "livetab", false);
         showMiiversePostPreview(false);
         $(".guide-view").hide();
+        $(".guide-content").off("scroll.guide");
         $(".footer .bottom").removeClass("guideopt");
         $(".program-central").show();
+
+        // Reset channel filter state
+        activeChannelFilter = "all";
 
         $(".guide-time-container").empty();
         $(".guide-channel-container").empty();
@@ -6473,6 +6484,7 @@ function initVinoHome() {
         tvii.pushStateWithQuery("scene", "recomtab", false);
         clearInterval(window.infoUpdInterval);
         vino.lyt_reset();
+        $(".guide-content").off("scroll.guide");
         $(".guide-view").empty();
         $(".guide-view").hide();
         $(".program-central").show();
