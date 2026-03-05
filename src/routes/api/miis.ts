@@ -5,16 +5,23 @@ import NodeCache from "node-cache";
 const router: Router = express.Router();
 
 const cache = new NodeCache({
-    stdTTL: 168 * 60 * 60, // 48 hours
-    checkperiod: 60 * 60 // cleanup every hour
+    stdTTL: 168 * 60 * 60, // 7 days
+    checkperiod: 60 * 60, // cleanup every hour
+    maxKeys: 500, // cap memory usage
 });
+
+// Allowlist of params forwarded to the external Mii API
+const MII_ALLOWED_PARAMS = ["width", "expression", "data", "type", "texResolution", "resourceType"];
 
 router.get("/", async (req: Request, res: Response) => {
     try {
-        // keep req.query exactly as requested
-        const query = new URLSearchParams(
-            req.query as Record<string, string>
-        ).toString();
+        // Filter query params to allowlisted keys only
+        const filtered = new URLSearchParams();
+        for (const key of MII_ALLOWED_PARAMS) {
+            const val = req.query[key];
+            if (typeof val === "string") filtered.set(key, val);
+        }
+        const query = filtered.toString();
 
         const cached = cache.get<Buffer>(query);
         if (cached) {
@@ -25,7 +32,7 @@ router.get("/", async (req: Request, res: Response) => {
         const url =
             `https://mii-unsecure.ariankordi.net/miis/image.png?verifyCRC16=1&${query}`;
 
-        const response = await fetch(url);
+        const response = await fetch(url, { signal: AbortSignal.timeout(10_000) });
 
         if (!response.ok) {
             return res.status(response.status).send("Image fetch failed");

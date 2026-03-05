@@ -56,7 +56,7 @@ tvii.locFile = {
     "vino.setup.help.set_zipcode": "Your zipcode is used to determine the most accurate TV provider services in your area.\n\nIf you are unable to properly input your zipcode, your Pretendo Network ID might be set on a incorrect country.\n\nChange your Pretendo Network ID country to the correct one in Wii U Menu > User Settings (Mii icon) > Change User Information, and then re-select your profile on the Wii U Menu user selection screen.\n\nYou can change your TV provider settings after the initial user setup.",
     "vino.setup.help.set_provider": "Select the TV provider that you use, if you do not find it, select the closest option.\n\nIf you see incorrect providers (not for your region, or far away from it), you might have entered a incorrect zipcode.\n\nYou can change your TV provider settings after the initial user setup.",
     "vino.setup.help.favorite_channel": "Select your favorite channels, since\nrecommendations for upcoming programs\nwill be made taking this information in mind.\n\nYou can modify your favorites settings after the initial user setup.",
-    "vino.setup.help.set_socials": "You can link social media so your comments on live TV programs/movies and actors are also sent there.\n\nCurrently, only Bluesky is supported, and it is not requiered to log in to use Nintendo TVii.\n\nYou can change these settings after the initial user setup.",
+    "vino.setup.help.set_socials": "You can link social media so your comments on live TV programs/movies and actors are also sent there.\n\nCurrently, only Bluesky is supported, and it is not required to log in to use Nintendo TVii.\n\nYou can change these settings after the initial user setup.",
     "vino.home.header.live": "Live",
     "vino.home.header.guide": "Guide",
     "vino.home.guide.no_data": "No program data available for this time window.",
@@ -135,9 +135,9 @@ tvii.locFile = {
     "vino.home.olv.crosspost.post.doodle_confirm_reset": "Are you sure you want to cancel?\n\nYour drawing and the history (undo/redo)\nwill be cleared.",
     "vino.home.olv.crosspost.post.doodle_color_message": "Please input a correct hex color.\nUse #RRGGBB or #RGB.",
 
-    "vino.home.olv.crosspost.post.input_requiered": 'Please write a message.',
+    "vino.home.olv.crosspost.post.input_required": 'Please write a message.',
 
-    "vino.home.olv.crosspost.post.memo_requiered": 'Please draw something first.',
+    "vino.home.olv.crosspost.post.memo_required": 'Please draw something first.',
 
     "vino.home.olv.crosspost.post.time.less_than_minute_ago": 'Less than a minute ago',
     "vino.home.olv.crosspost.post.time.minute_ago": 'A minute ago',

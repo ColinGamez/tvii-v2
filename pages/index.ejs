@@ -4,7 +4,7 @@
 <head>
   <title>Nintendo TVii</title>
   <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
-  <link href="/css/vino.css?v=14" rel="stylesheet" />
+  <link href="/css/vino.css?v=15" rel="stylesheet" />
   <script>
     function handleScriptError(scriptName) {
       alert("Error !!!:" + scriptName);
@@ -14,7 +14,7 @@
     }
   </script>
   <script src="/js/jquery-3.7.1.min.js" onerror="handleScriptError('jquery-3.7.1.min.js')"></script>
-  <script src="/js/vino.js?v=14" onerror="handleScriptError('vino.js')"></script>
+  <script src="/js/vino.js?v=15" onerror="handleScriptError('vino.js')"></script>
   <%
 var scriptFile = "loc-en_US.js"; // default
 
@@ -33,11 +33,11 @@ if (typeof lang === "string") {
 }
 %>
 
-  <script src="/js/<%= scriptFile %>?v=14" onerror="handleScriptError('<%= scriptFile %>')"></script>
+  <script src="/js/<%= scriptFile %>?v=15" onerror="handleScriptError('<%= scriptFile %>')"></script>
 
 </head>
 
-<body data-pid="<%- pid %>" data-lang="<%= lang %>" data-country="<%- country %>" data-tv-provider-tz="<%- tz_name %>" data-region="<%- region %>" data-utc-offset="<%- utc_offset %>" data-tv-provider-id="<%- tv_provider_id %>">
+<body data-pid="<%= pid %>" data-lang="<%= lang %>" data-country="<%= country %>" data-tv-provider-tz="<%= tz_name %>" data-region="<%= region %>" data-utc-offset="<%= utc_offset %>" data-tv-provider-id="<%= tv_provider_id %>">
 
   <img style="display: none" src="/img/feeling_sprite.png" width="0" height="0" />
   <img style="display: none" src="/img/spoiler-button.png" width="0" height="0" />

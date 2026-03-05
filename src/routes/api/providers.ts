@@ -6,10 +6,8 @@ import { db } from "../../utils/db.ts";
 import { parseServiceToken } from "../../utils/serviceToken.ts";
 import { fetchWithProxy, postWithProxy } from "../../utils/fetchWithProxy.ts";
 import { logger } from "../../utils/logger.ts";
-import Redis from "ioredis";
+import { redis } from "../../utils/db.ts";
 import * as gguide from "../../utils/gguide.ts";
-
-const redis = new Redis();
 
 const router: Router = express.Router();
 
@@ -1010,7 +1008,7 @@ router.get("/lineup/:country/:provider_id", async (req: Request, res: Response) 
         return res.status(500).json({
             provider_id,
             hasError: 1,
-            error: { code: 500, message: err.message || "Internal Server Error" }
+            error: { code: 500, message: "Internal Server Error" }
         });
     }
 });
@@ -1186,9 +1184,9 @@ router.get("/info", async (req: Request, res: Response) => {
 
         if (program.url) {
             try {
-                extra_program = await getShowDetails(program.url, String(country),
-                    String(provider_id),
-                    String(tz_name))
+                extra_program = await getShowDetails(program.url, String(provider_id),
+                    String(tz_name),
+                    String(country))
             } catch (e) {
 
             }
@@ -1207,7 +1205,7 @@ router.get("/info", async (req: Request, res: Response) => {
         console.error(err);
         return res.status(500).json({
             hasError: 1,
-            error: { code: 500, message: err.message || "Internal Server Error" }
+            error: { code: 500, message: "Internal Server Error" }
         });
     }
 });
@@ -1329,6 +1327,25 @@ router.get("/kodi/mapping", async (_req: Request, res: Response) => {
         });
     } catch (err: any) {
         return res.status(502).json({ error: err?.message ?? "Failed to build mapping" });
+    }
+});
+
+// ── Force-refresh EPG data ──────────────────────────────────
+router.post("/epg/refresh", async (_req: Request, res: Response) => {
+    try {
+        logger.info("EPG: manual force-refresh triggered");
+        gguide.invalidateCache();
+        // Trigger an actual re-scrape by calling getChannels
+        const channels = await gguide.getChannels();
+        const programs = await gguide.getAllPrograms();
+        return res.json({
+            status: "ok",
+            channels: channels.size,
+            programs: programs.length,
+        });
+    } catch (err: any) {
+        logger.error("EPG: force-refresh failed – %s", err.message);
+        return res.status(500).json({ error: err?.message ?? "Refresh failed" });
     }
 });
 

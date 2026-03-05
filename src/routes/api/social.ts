@@ -1,32 +1,15 @@
 import express, { type Request, type Response, type Router } from "express";
 import multer from "multer";
 import { env } from "../../env.ts";
-import crypto from "crypto";
 import { BskyClient } from "../../utils/bsky.ts";
 import { parseServiceToken } from "../../utils/serviceToken.ts";
 import { db } from "../../utils/db.ts";
-import { TwitterApi } from "twitter-api-v2";
+import { encrypt, decrypt } from "../../utils/crypto.ts";
+import { logger } from "../../utils/logger.ts";
 
-// Key must be 32 bytes for AES-256
-const AES_KEY = Buffer.from(env.VINO_JP_CONFIG_BSKY_AES_KEY, "base64");
-
-function encrypt(text: string): string {
-    const iv = crypto.randomBytes(16); // new IV every time
-    const cipher = crypto.createCipheriv("aes-256-cbc", AES_KEY, iv);
-    let encrypted = cipher.update(text, "utf8", "base64");
-    encrypted += cipher.final("base64");
-    // Store IV along with ciphertext
-    return iv.toString("base64") + ":" + encrypted;
-}
-
-function decrypt(data: string): string {
-    const [ivBase64, encryptedData] = data.split(":");
-    const iv = Buffer.from(ivBase64!, "base64");
-    const decipher = crypto.createDecipheriv("aes-256-cbc", AES_KEY, iv);
-    let decrypted = decipher.update(encryptedData!, "base64", "utf8");
-    decrypted += decipher.final("utf8");
-    return decrypted;
-}
+const isDev = ["dev", "stg"].includes(
+    (env.VINO_JP_CONFIG_ENV ?? "dev").toLowerCase()
+);
 
 function buildSocialPost(
     maxLength: number,
@@ -95,10 +78,8 @@ import {
     ObjectCannedACL,
     PutObjectCommand,
 } from "@aws-sdk/client-s3";
-import Redis from "ioredis";
+import { redis } from "../../utils/db.ts";
 import * as cheerio from "cheerio";
-
-const redis = new Redis();
 
 // Create S3 client for MinIO
 const s3 = new S3Client({
@@ -134,7 +115,7 @@ router.post(
             const check = await bsky.login(identifier, passwd);
 
             if (!check) {
-                res.status(400).json({ error: "Invalid account." });
+                return res.status(400).json({ error: "Invalid account." });
             }
 
             const info = await bsky.agent.getProfile({ actor: check.did });
@@ -189,7 +170,8 @@ router.get(
             } else {
                 try {
                     const miiResp = await fetch(
-                        `https://mii-unsecure.ariankordi.net/mii_data/?pid=${pid}&api_id=1`
+                        `https://mii-unsecure.ariankordi.net/mii_data/?pid=${pid}&api_id=1`,
+                        { signal: AbortSignal.timeout(10_000) }
                     );
 
                     if (miiResp.ok) {
@@ -203,7 +185,8 @@ router.get(
 
                 try {
                     const juxtResp = await fetch(
-                        `https://juxt.pretendo.network/users/${pid}`
+                        `https://juxt.pretendo.network/users/${pid}`,
+                        { signal: AbortSignal.timeout(10_000) }
                     );
 
                     if (juxtResp.ok) {
@@ -232,6 +215,11 @@ router.get(
             // TypeScript needed the "as string" for some reason
             if (env.VINO_JP_STAFF_PIDS.includes(pid as string)) {
                 user_id = "??????????"
+            }
+
+            // Fallback: use stored nnid if external API didn't resolve user_id
+            if (!user_id && account.nnid) {
+                user_id = account.nnid;
             }
 
             return res.json({
@@ -374,7 +362,7 @@ router.post(
                     );
                     paintingBuffer = Buffer.from(base64Image, "base64");
 
-                    memoCdnKey = `${token.pid}_${Date.now()}.png`;
+                    memoCdnKey = `${token.pid}_${Date.now()}_memo.png`;
                     const bucketName = env.VINO_JP_MINIO_BUCKET;
 
                     const uploadParams = {
@@ -409,7 +397,7 @@ router.post(
                     );
                     screenshotBuffer = Buffer.from(base64Image, "base64");
 
-                    screenshotCdnKey = `${token.pid}_${Date.now()}.png`;
+                    screenshotCdnKey = `${token.pid}_${Date.now()}_ss.png`;
                     const bucketName = env.VINO_JP_MINIO_BUCKET;
 
                     const uploadParams = {
@@ -422,7 +410,7 @@ router.post(
 
                     await s3.send(new PutObjectCommand(uploadParams));
                     console.log(
-                        `✅ PostAlt Screenshot PNG Uploaded ${memoCdnKey} to ${bucketName}`
+                        `✅ PostAlt Screenshot PNG Uploaded ${screenshotCdnKey} to ${bucketName}`
                     );
                 } catch (err) {
                     console.error(
@@ -524,6 +512,7 @@ router.post(
                         method: "POST",
                         headers: { "Content-Type": "application/json" },
                         body: JSON.stringify({ embeds: [embed] }),
+                        signal: AbortSignal.timeout(5_000),
                     });
                 } catch (err) {
                     console.error("❌ Failed to send Discord webhook:", err);
@@ -595,7 +584,7 @@ router.post(
                 // ─── Roseverse / OLV Crosspost ─────────────────────────
                 const olvApiUrl = req.headers["x-olv-api-url"] as string | undefined;
                 const olvServiceToken = req.headers["x-olv-servicetoken"] as string | undefined;
-                const olvParamPack = req.headers["x-olv-parampack"] as string | undefined;
+                let olvParamPack = req.headers["x-olv-parampack"] as string | undefined;
                 const olvUserAgent = req.headers["x-olv-useragent"] as string | undefined;
 
                 if (olvApiUrl && olvServiceToken) {
@@ -606,7 +595,20 @@ router.post(
                             try {
                                 const decoded = Buffer.from(olvParamPack, "base64").toString("utf-8");
                                 const match = decoded.match(/\\title_id\\(\d+)/);
-                                if (match) olvTitleId = match[1];
+                                if (match) {
+                                    olvTitleId = match[1];
+
+                                    // Convert decimal title_id to 16-char hex (how communities are stored)
+                                    // Wii U sends decimal "1407581310496778" but Roseverse stores hex "000500301001300A"
+                                    const titleIdNum = BigInt(olvTitleId);
+                                    const titleIdHex = titleIdNum.toString(16).toUpperCase().padStart(16, "0");
+                                    const fixedDecoded = decoded.replace(
+                                        `\\title_id\\${olvTitleId}`,
+                                        `\\title_id\\${titleIdHex}`
+                                    );
+                                    olvParamPack = Buffer.from(fixedDecoded).toString("base64");
+                                    console.log(`[Roseverse] title_id: ${olvTitleId} -> hex ${titleIdHex}`);
+                                }
                             } catch (_) {}
                         }
 
@@ -631,19 +633,21 @@ router.post(
                             olvForm.append("search_key", sk);
                         }
 
-                        // Log full details to file for debugging
-                        const debugInfo = [
-                            `=== Roseverse Crosspost ${new Date().toISOString()} ===`,
-                            `URL: ${olvApiUrl}/v1/posts`,
-                            `ServiceToken: ${olvServiceToken.substring(0, 20)}...`,
-                            `ParamPack (decoded): title_id=${olvTitleId}`,
-                            `ParamPack (raw b64): ${(olvParamPack || "").substring(0, 80)}...`,
-                            `UserAgent: ${olvUserAgent || "(default)"}`,
-                            `Form body: ${olvForm.toString()}`,
-                            `---`,
-                        ].join("\n");
-                        const fs = await import("fs");
-                        fs.appendFileSync("roseverse_debug.log", debugInfo + "\n");
+                        // Log full details to file for debugging (dev only — avoids leaking tokens)
+                        if (isDev) {
+                            const debugInfo = [
+                                `=== Roseverse Crosspost ${new Date().toISOString()} ===`,
+                                `URL: ${olvApiUrl}/v1/posts`,
+                                `ServiceToken: ${olvServiceToken.substring(0, 20)}...`,
+                                `ParamPack (decoded): title_id=${olvTitleId}`,
+                                `ParamPack (raw b64): ${(olvParamPack || "").substring(0, 80)}...`,
+                                `UserAgent: ${olvUserAgent || "(default)"}`,
+                                `Form body: ${olvForm.toString()}`,
+                                `---`,
+                            ].join("\n");
+                            const fs = await import("fs");
+                            fs.appendFileSync("roseverse_debug.log", debugInfo + "\n");
+                        }
 
                         const olvResp = await fetch(`${olvApiUrl}/v1/posts`, {
                             method: "POST",
@@ -654,14 +658,17 @@ router.post(
                                 "User-Agent": olvUserAgent || "WiiU/POLV-5.0.3/353",
                             },
                             body: olvForm.toString(),
+                            signal: AbortSignal.timeout(15_000),
                         });
 
                         const olvBody = await olvResp.text();
-                        // Append response to debug log
-                        fs.appendFileSync("roseverse_debug.log",
-                            `Response ${olvResp.status}:\n${olvBody}\n\n`);
-                        console.log(`[Roseverse] POST -> ${olvResp.status} (title_id=${olvTitleId})`);
-                        console.log(`[Roseverse] Full debug written to roseverse_debug.log`);
+                        // Append response to debug log (dev only)
+                        if (isDev) {
+                            const fs = await import("fs");
+                            fs.appendFileSync("roseverse_debug.log",
+                                `Response ${olvResp.status}:\n${olvBody}\n\n`);
+                        }
+                        logger.info("[Roseverse] POST -> %d (title_id=%s)", olvResp.status, olvTitleId);
 
                         if (olvResp.status !== 200) {
                             console.log(`[Roseverse] Error response: ${olvBody}`);
@@ -711,7 +718,7 @@ router.get("/postsAlt", async (req: Request, res: Response): Promise<any> => {
             .innerJoin("account", "posts.pid", "account.pid")
             .whereRaw("JSON_VALID(posts.search_keys)")
             .andWhereRaw("JSON_CONTAINS(posts.search_keys, ?)", [
-                `"${search_key}"`,
+                JSON.stringify(search_key),
             ]);
 
         // Keyset pagination
@@ -878,8 +885,7 @@ router.delete(
                 .first();
 
             if (!existing) {
-                // is this the right error code?
-                return res.status(500).json({ status: "empathy does not exist" });
+                return res.status(404).json({ status: "empathy_not_found" });
             }
 
             await db("empathies")

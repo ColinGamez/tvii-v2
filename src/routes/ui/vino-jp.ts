@@ -21,7 +21,7 @@ router.get("/", async (req: Request, res: Response): Promise<any> => {
     const token = parseServiceToken(req);
 
     if (!token.ok) {
-        return res.send(404).end();
+        return res.sendStatus(404);
     }
 
     res.redirect("/index.html");
@@ -33,7 +33,7 @@ router.get("/setup.html", async (req: Request, res: Response): Promise<any> => {
     const token = parseServiceToken(req);
 
     if (!token.ok) {
-        return res.send(404).end();
+        return res.sendStatus(404);
     }
 
     const account = await db("account")
@@ -107,13 +107,9 @@ router.get("/index.html", async (req: Request, res: Response): Promise<any> => {
 
     if (now.getTime() - lastUpdate.getTime() > oneHour) {
         try {
-            if (isDev) {
-                // Dev mode — skip Pretendo Mii refresh
-                logger.info("DEV mode — skipping Mii refresh for pid %s", token.pid);
-                updateValues.last_data_update = mysqlNow();
-            } else {
             const updateMiiData = await fetch(
-                `https://mii-unsecure.ariankordi.net/mii_data/?pid=${token.pid}&api_id=1&force_refresh=1`
+                `https://mii-unsecure.ariankordi.net/mii_data/?pid=${token.pid}&api_id=1&force_refresh=1`,
+                { signal: AbortSignal.timeout(10_000) }
             );
 
             if (updateMiiData.ok) {
@@ -121,28 +117,34 @@ router.get("/index.html", async (req: Request, res: Response): Promise<any> => {
 
                 const mii_name = PIDData.name;
                 const mii_data = PIDData.data;
+                const nnid = PIDData.user_id || null;
 
-                const mii = new Mii(Buffer.from(mii_data, "base64"));
-                const mii_bday = mii.birthDay + "/" + mii.birthMonth;
+                let mii_bday: string | undefined;
+                if (mii_data) {
+                    const mii = new Mii(Buffer.from(mii_data, "base64"));
+                    mii_bday = mii.birthMonth + "/" + mii.birthDay;
+                }
 
                 // Extract real IP (Cloudflare first)
                 let ip =
                     req.headers["cf-connecting-ip"] ||
                     req.headers["x-forwarded-for"] ||
-                    req.connection.remoteAddress ||
                     req.ip;
 
                 if (typeof ip === "string" && ip.includes(",")) {
-                    ip = ip.split(",")[0];
+                    ip = ip.split(",")[0]!.trim();
                 }
 
                 if (typeof ip === "string" && ip.startsWith("::ffff:")) {
                     ip = ip.substring(7);
                 }
 
-                // timezone lookup
-                const ipReq = await fetch(`https://ipwho.is/${ip}`);
-                const ipInfo = await ipReq.json() as any;
+                // timezone lookup (validate IP first to prevent SSRF)
+                const { isIP } = await import("net");
+                const ipReq = (typeof ip === "string" && isIP(ip))
+                    ? await fetch(`https://ipwho.is/${encodeURIComponent(ip)}`, { signal: AbortSignal.timeout(10_000) })
+                    : null;
+                const ipInfo = ipReq ? await ipReq.json() as any : null;
 
                 if (
                     ipInfo?.success &&
@@ -157,7 +159,8 @@ router.get("/index.html", async (req: Request, res: Response): Promise<any> => {
                 Object.assign(updateValues, {
                     mii_name,
                     mii_data,
-                    mii_bday,
+                    ...(mii_bday ? { mii_bday } : {}),
+                    ...(nnid ? { nnid } : {}),
                     utc_offset,
                     last_data_update: mysqlNow(),
                 });
@@ -166,7 +169,6 @@ router.get("/index.html", async (req: Request, res: Response): Promise<any> => {
             } else {
                 updateValues.last_data_update = mysqlNow();
             }
-            } // end non-dev branch
         } catch (err) {
             console.warn("Mii/IP update failed:", err);
             updateValues.last_data_update = mysqlNow();
@@ -199,5 +201,9 @@ router.get("/index.html", async (req: Request, res: Response): Promise<any> => {
 });
 
 
+
+router.get("/manual", (_req: Request, res: Response) => {
+    res.sendFile(join(__dirname, "..", "..", "pages", "manual.html"));
+});
 
 export { router as vinoRoute };

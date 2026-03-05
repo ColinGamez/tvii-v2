@@ -4,9 +4,38 @@ import NodeCache from "node-cache";
 import { env } from "../env";
 
 const router: Router = express.Router();
+
+// Allowed domains for the external image proxy (SSRF protection)
+const ALLOWED_IMAGE_DOMAINS = new Set([
+    "tvpassport.com",
+    "www.tvpassport.com",
+    "cdn.tvpassport.com",
+    "images.tvpassport.com",
+    "m.media-amazon.com",
+    "image.tmdb.org",
+    "tmsimg.com",
+    "cdn.projectrose.cafe",
+]);
+
+/** Check if a URL's hostname is in the allowlist (including subdomains) */
+function isAllowedImageDomain(url: string): boolean {
+    try {
+        const hostname = new URL(url).hostname.toLowerCase();
+        if (ALLOWED_IMAGE_DOMAINS.has(hostname)) return true;
+        // Check if it's a subdomain of an allowed domain
+        for (const allowed of ALLOWED_IMAGE_DOMAINS) {
+            if (hostname.endsWith("." + allowed)) return true;
+        }
+        return false;
+    } catch {
+        return false;
+    }
+}
+
 const imageCache = new NodeCache({
     stdTTL: 60 * 60 * 24 * 7, // 7 days
     checkperiod: 60 * 60, // check expired items every hour
+    maxKeys: 500, // cap memory usage
 });
 
 router.get("/cdn/:imageId", async (req: Request, res: Response): Promise<any> => {
@@ -28,7 +57,7 @@ router.get("/cdn/:imageId", async (req: Request, res: Response): Promise<any> =>
         }
 
         const imageUrl = `https://cdn.projectrose.cafe/tvii-jp-d1/${imageId}`;
-        const response = await fetch(imageUrl);
+        const response = await fetch(imageUrl, { signal: AbortSignal.timeout(10_000) });
 
         if (!response.ok) {
             return res.status(404).json({ error: "Image not found" });
@@ -86,6 +115,9 @@ router.get(/^\/cdn\/tvp\/(.+)$/, async (req: Request, res: Response) => {
             if (!/^https?:\/\//i.test(imageUrl)) {
                 return res.status(400).json({ error: "Only HTTP(S) URLs allowed" });
             }
+            if (!isAllowedImageDomain(imageUrl)) {
+                return res.status(403).json({ error: "Domain not allowed" });
+            }
             fetchOptions = {
                 headers: {
                     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
@@ -117,7 +149,7 @@ router.get(/^\/cdn\/tvp\/(.+)$/, async (req: Request, res: Response) => {
             return res.status(200).send(cachedImage);
         }
 
-        const response = await fetch(imageUrl, fetchOptions);
+        const response = await fetch(imageUrl, { ...fetchOptions, signal: AbortSignal.timeout(10_000) });
 
         if (!response.ok) {
             return res.status(404).json({ error: "Image not found" });

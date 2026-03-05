@@ -128,9 +128,9 @@ tvii.locFile = {
     "vino.home.olv.crosspost.post.doodle_confirm_reset": "Êtes-vous sûr(e) de vouloir annuler ? \n\nVotre dessin et l'historique (annuler/refaire)\nseront effacés.",
     "vino.home.olv.crosspost.post.doodle_color_message": "Veuillez entrer une couleur \nhexadécimale correcte. \nUtilisez #RRGGBB ou #RGB.",
 
-    "vino.home.olv.crosspost.post.input_requiered": 'Veuillez écrire un message.',
+    "vino.home.olv.crosspost.post.input_required": 'Veuillez écrire un message.',
 
-    "vino.home.olv.crosspost.post.memo_requiered": 'Veuillez dessiner quelque chose en premier.',
+    "vino.home.olv.crosspost.post.memo_required": 'Veuillez dessiner quelque chose en premier.',
 
     "vino.home.olv.crosspost.post.time.less_than_minute_ago": "Il y a moins d'une minute",
     "vino.home.olv.crosspost.post.time.minute_ago": 'Il y a une minute',

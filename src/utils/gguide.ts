@@ -12,11 +12,9 @@
  */
 
 import * as cheerio from "cheerio";
-import Redis from "ioredis";
+import { redis } from "./db.ts";
 import { env } from "../env.ts";
 import { logger } from "./logger.ts";
-
-const redis = new Redis();
 
 // ── Configuration ────────────────────────────────────────────
 const GGUIDE_BASE = "https://bangumi.org";
@@ -237,6 +235,7 @@ async function gFetch(url: string): Promise<string> {
             "Accept-Encoding": "gzip, deflate, br",
         },
         redirect: "follow",
+        signal: AbortSignal.timeout(20_000),
     });
     if (!resp.ok) {
         throw new Error(`G-Guide fetch ${url} → ${resp.status}`);

@@ -32,7 +32,7 @@ export const logger = {
     },
     /**
      * Logs a green message to the console - logger.success();
-     * @param { string } msg - The message you would like to loglog
+     * @param { string } msg - The message you would like to log
      * @param { unknown } args - Adds support for C-like stuff (e.g. %s)
      */
     success: (msg: string, ...args: unknown[]): void => {
@@ -48,7 +48,7 @@ export const logger = {
      * @param { unknown } args - Adds support for C-like stuff (e.g. %s)
      */
     error: (msg: string, ...args: unknown[]): void => {
-        console.log(
+        console.error(
             chalk.bold.redBright(
                 `[ERROR ${getTime()}] ${util.format(msg, ...args)}`
             )
@@ -60,7 +60,7 @@ export const logger = {
      * @param { unknown } args - Adds support for C-like stuff (e.g. %s)
      */
     warn: (msg: string, ...args: unknown[]): void => {
-        console.log(
+        console.warn(
             chalk.bold.yellowBright(
                 `[WARN ${getTime()}] ${util.format(msg, ...args)}`
             )

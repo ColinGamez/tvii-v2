@@ -7,33 +7,12 @@ import { db } from "../../utils/db.ts";
 import { z } from "zod";
 import { BskyClient } from "../../utils/bsky.ts";
 import { env } from "../../env.ts";
-import crypto from "crypto";
+import { encrypt, decrypt } from "../../utils/crypto.ts";
 import { logger } from "../../utils/logger.ts";
 
 const isDev = ["dev", "stg"].includes(
     (process.env.VINO_JP_CONFIG_ENV ?? "dev").toLowerCase()
 );
-
-// Key must be 32 bytes for AES-256
-const AES_KEY = Buffer.from(env.VINO_JP_CONFIG_BSKY_AES_KEY, "base64");
-
-function encrypt(text: string): any {
-    const iv = crypto.randomBytes(16); // new IV every time
-    const cipher = crypto.createCipheriv("aes-256-cbc", AES_KEY, iv);
-    let encrypted = cipher.update(text, "utf8", "base64");
-    encrypted += cipher.final("base64");
-    // Store IV along with ciphertext
-    return iv.toString("base64") + ":" + encrypted;
-}
-
-function decrypt(data: string): any {
-    const [ivBase64, encryptedData] = data.split(":");
-    const iv = Buffer.from(ivBase64!, "base64");
-    const decipher = crypto.createDecipheriv("aes-256-cbc", AES_KEY, iv);
-    let decrypted = decipher.update(encryptedData!, "base64", "utf8");
-    decrypted += decipher.final("utf8");
-    return decrypted;
-}
 
 const router: Router = express.Router();
 
@@ -74,16 +53,41 @@ router.post(
             let mii_name: string;
             let mii_data: string;
             let mii_bday: string;
+            let nnid: string | null = null;
 
             if (isDev) {
-                // Dev mode — skip Pretendo Mii verification, use defaults
-                logger.info("DEV mode — skipping Pretendo Mii check for pid %s", principalId);
-                mii_name = "Player";
-                mii_data = "";
-                mii_bday = "1/1";
+                // Dev mode — still try Pretendo Mii API, fall back to defaults
+                logger.info("DEV mode — attempting Pretendo Mii check for pid %s", principalId);
+                try {
+                    const devMiiResp = await fetch(
+                        `https://mii-unsecure.ariankordi.net/mii_data/?pid=${principalId}&api_id=1&force_refresh=1`,
+                        { signal: AbortSignal.timeout(10_000) }
+                    );
+                    if (devMiiResp.ok) {
+                        const devMiiData = await devMiiResp.json() as any;
+                        mii_name = devMiiData.name || "Player";
+                        mii_data = devMiiData.data || "";
+                        nnid = devMiiData.user_id || null;
+                        if (mii_data) {
+                            const mii = new Mii(Buffer.from(mii_data, "base64"));
+                            mii_bday = mii.birthMonth + "/" + mii.birthDay;
+                        } else {
+                            mii_bday = "1/1";
+                        }
+                        logger.info("DEV mode — fetched real Mii for pid %s: %s", principalId, mii_name);
+                    } else {
+                        throw new Error("Mii API returned " + devMiiResp.status);
+                    }
+                } catch (err) {
+                    logger.info("DEV mode — Mii fetch failed, using defaults: %s", err);
+                    mii_name = "Player";
+                    mii_data = "";
+                    mii_bday = "1/1";
+                }
             } else {
                 const checkPID = await fetch(
-                    `https://mii-unsecure.ariankordi.net/mii_data/?pid=${principalId}&api_id=1&force_refresh=1`
+                    `https://mii-unsecure.ariankordi.net/mii_data/?pid=${principalId}&api_id=1&force_refresh=1`,
+                    { signal: AbortSignal.timeout(10_000) }
                 );
                 if (!checkPID.ok) {
                     console.warn(
@@ -98,6 +102,7 @@ router.post(
 
                 mii_name = checkPIDData!.name!;
                 mii_data = checkPIDData!.data!;
+                nnid = checkPIDData?.user_id || null;
 
                 const mii = new Mii(Buffer.from(mii_data, "base64"));
                 mii_bday = mii.birthMonth + "/" + mii.birthDay;
@@ -151,12 +156,11 @@ router.post(
             let ip =
                 req.headers["cf-connecting-ip"] ||
                 req.headers["x-forwarded-for"] ||
-                req.connection.remoteAddress ||
                 req.ip;
 
             // If x-forwarded-for contains multiple IPs, take the first
             if (typeof ip === "string" && ip.includes(",")) {
-                ip = ip.split(",")[0];
+                ip = ip.split(",")[0]!.trim();
             }
 
             // Strip IPv6 prefix
@@ -164,8 +168,12 @@ router.post(
                 ip = ip.substring(7);
             }
 
-            const ipReq = await fetch(`https://ipwho.is/${ip}`);
-            const ipInfo = await ipReq.json() as any;
+            // Validate IP before making external request (SSRF protection)
+            const { isIP } = await import("net");
+            const ipReq = (typeof ip === "string" && isIP(ip))
+                ? await fetch(`https://ipwho.is/${encodeURIComponent(ip)}`, { signal: AbortSignal.timeout(10_000) })
+                : null;
+            const ipInfo = ipReq ? await ipReq.json() as any : null;
             let utc_offset;
 
             if (
@@ -199,6 +207,7 @@ router.post(
                 mii_data,
                 mii_name,
                 mii_bday,
+                nnid,
                 utc_offset,
                 serial_number: serialNumber,
                 access_key: accessKey,

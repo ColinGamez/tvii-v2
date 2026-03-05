@@ -129,9 +129,9 @@ tvii.locFile = {
     "vino.home.olv.crosspost.post.doodle_confirm_reset": "キャンセルしますか？\n\n描いた絵と履歴（元に戻す/やり直し）が\nクリアされます。",
     "vino.home.olv.crosspost.post.doodle_color_message": "正しい16進数カラーを入力してください。\n#RRGGBB または #RGB 形式で入力してください。",
 
-    "vino.home.olv.crosspost.post.input_requiered": 'メッセージを入力してください。',
+    "vino.home.olv.crosspost.post.input_required": 'メッセージを入力してください。',
 
-    "vino.home.olv.crosspost.post.memo_requiered": '先に何か描いてください。',
+    "vino.home.olv.crosspost.post.memo_required": '先に何か描いてください。',
 
     "vino.home.olv.crosspost.post.time.less_than_minute_ago": '1分以内',
     "vino.home.olv.crosspost.post.time.minute_ago": '1分前',

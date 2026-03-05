@@ -3214,9 +3214,6 @@ function initVinoHome() {
             var tag = dom.querySelector("span.info > .tag");
             var txt = dom.querySelector("span.info > .text");
 
-            var infoSpan2 = dom.querySelector("span.info");
-            var tag = dom.querySelector("span.info > .tag");
-
             if (infoSpan2 && tag) {
                 tag.className = "tag";
 
@@ -3257,27 +3254,27 @@ function initVinoHome() {
             if (txt) {
                 txt.textContent = computeLiveInfoText(nowTimestamp - program.startTime);
             }
-
-            function computeLiveInfoText(elapsedSeconds) {
-                if (elapsedSeconds < 60)
-                    return tvii.getLoc("vino.home.lst.time_moment_ago");
-
-                var mins = (elapsedSeconds / 60) | 0;
-                if (mins === 1)
-                    return tvii.getLoc("vino.home.lst.time_minute_ago", 1);
-
-                var hrs = (mins / 60) | 0;
-                var rem = mins % 60;
-
-                if (hrs > 0 && rem > 0)
-                    return tvii.getLoc("vino.home.lst.time_hours_minutes_ago", hrs, rem);
-
-                if (hrs > 0)
-                    return tvii.getLoc("vino.home.lst.time_hours_ago", hrs);
-
-                return tvii.getLoc("vino.home.lst.time_minutes_ago", mins);
-            }
         });
+    }
+
+    function computeLiveInfoText(elapsedSeconds) {
+        if (elapsedSeconds < 60)
+            return tvii.getLoc("vino.home.lst.time_moment_ago");
+
+        var mins = (elapsedSeconds / 60) | 0;
+        if (mins === 1)
+            return tvii.getLoc("vino.home.lst.time_minute_ago", 1);
+
+        var hrs = (mins / 60) | 0;
+        var rem = mins % 60;
+
+        if (hrs > 0 && rem > 0)
+            return tvii.getLoc("vino.home.lst.time_hours_minutes_ago", hrs, rem);
+
+        if (hrs > 0)
+            return tvii.getLoc("vino.home.lst.time_hours_ago", hrs);
+
+        return tvii.getLoc("vino.home.lst.time_minutes_ago", mins);
     }
 
 
@@ -4717,7 +4714,6 @@ function initVinoHome() {
         var miiData = post.mii_data;
         var postId = post.post_id;
         var replyAmount = 0;
-        var miitooAmount = 0;
         var feeling = post.feeling_id;
         var feelingQ = getFeelingQueryFromPostXml(feeling);
         var postText = post.body;
@@ -4790,7 +4786,7 @@ function initVinoHome() {
         ss.src = postScreenshot ? "/images/cdn/" + postScreenshot + "?width=384" : "/img/noimg.png";
 
         var ssDiv = $("<div>");
-        ssDiv.append(ss).addClass("screenshot").attr("tabindex", "0").attr("navi_target", "").attr("data-screenshot", postScreenshot ? postScreenshot : "/img/noimg.ong")
+        ssDiv.append(ss).addClass("screenshot").attr("tabindex", "0").attr("navi_target", "").attr("data-screenshot", postScreenshot ? postScreenshot : "/img/noimg.png")
 
         if (postScreenshot && postText) {
             postRCont.append(content);
@@ -4807,9 +4803,7 @@ function initVinoHome() {
         var postMeta = $("<div>").addClass("post-meta");
         var postHref = $("<a>").addClass("post-href").attr("href", "javascript:void(0)").attr("navi_target", "");
 
-        for (var a = 0; a < empathies.length; a++) {
-            miitooAmount++;
-        }
+        var miitooAmount = empathies.length;
 
         var yeahCount = $("<span>")
             .addClass("yeahs")
@@ -5062,6 +5056,9 @@ function initVinoHome() {
         $(".miiverse-doodle-modal .back-modal").off("click");
         $(".miiverse-doodle-modal").empty().hide();
 
+        // Remove document-level mouseup listener to prevent memory leak
+        document.removeEventListener("mouseup", handleMouseUp);
+
         baseCtx = null;
         ctx = null;
         canvas = null;
@@ -5239,7 +5236,7 @@ function initVinoHome() {
 
             var text = $(".miiverse-doodle-modal .comment textarea").val();
             if (!text || !text.length) {
-                alert(tvii.getLoc("vino.home.olv.crosspost.post.input_requiered"));
+                alert(tvii.getLoc("vino.home.olv.crosspost.post.input_required"));
                 disableTopBotHeaders(false);
                 $(this).removeClass("disabled");
                 return;
@@ -5645,7 +5642,7 @@ function initVinoHome() {
             if (postType === "body") {
                 var text = miiverseModal.find(".textarea-text-input").val();
                 if (!text || !text.length) {
-                    alert(tvii.getLoc("vino.home.olv.crosspost.post.input_requiered"));
+                    alert(tvii.getLoc("vino.home.olv.crosspost.post.input_required"));
                     lockPostModal(false);
                     return;
                 }
@@ -5669,7 +5666,7 @@ function initVinoHome() {
                 //var painting = vino.memo_getImageTgaCompressed();
                 var painting = vino.memo_getImagePng();
                 if (!painting || !painting.length) {
-                    alert(tvii.getLoc("vino.home.olv.crosspost.post.memo_requiered"));
+                    alert(tvii.getLoc("vino.home.olv.crosspost.post.memo_required"));
                     lockPostModal(false);
                     return;
                 }
@@ -5716,7 +5713,6 @@ function initVinoHome() {
     }
 
     //This button is always present. Its literally part of the bottom.
-    //FUCK MY STUPID CHUD LIFE
     $(".miiverse-post").on("click", function (e) {
         if (isHeaderButtonBlocked) return;
         if ($(this).hasClass("disabled")) return;

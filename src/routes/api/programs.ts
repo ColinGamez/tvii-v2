@@ -36,7 +36,8 @@ router.get("/:programId", async (req: Request, res: Response) => {
 
     try {
         const response = await fetch(
-            `${env.VINO_JP_TV_PROGRAM_DETAILS_BASE_URL}/${validatedProgramId}/web`
+            `${env.VINO_JP_TV_PROGRAM_DETAILS_BASE_URL}/${validatedProgramId}/web`,
+            { signal: AbortSignal.timeout(10_000) }
         );
 
         if (!response.ok) {

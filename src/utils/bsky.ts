@@ -13,7 +13,7 @@ export class BskyClient {
         this.agent = new AtpAgent({
             service: "https://bsky.social",
             persistSession: (evt: AtpSessionEvent, sess?: AtpSessionData) => {
-                console.log("Persisting session:", evt);
+                // Session persisted (evt logged at debug level only)
                 if (sess) {
                     this.session = sess;
                     this.resolvePersist?.(this.session);

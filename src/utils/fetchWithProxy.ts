@@ -16,8 +16,8 @@ function getRandomInt(min: number, max: number): number {
 }
 
 function generateRandomUserAgent(): string {
-    const chromeVersion = `${getRandomInt(113, 120)}.0.${getRandomInt(5000, 5999)}.${getRandomInt(100, 999)}`;
-    const firefoxVersion = `${getRandomInt(100, 120)}.0`;
+    const chromeVersion = `${getRandomInt(126, 134)}.0.${getRandomInt(6000, 6999)}.${getRandomInt(100, 999)}`;
+    const firefoxVersion = `${getRandomInt(120, 135)}.0`;
     const rand = getRandomInt(1, 9);
 
     return getRandom(userAgentTemplates)
@@ -27,10 +27,12 @@ function generateRandomUserAgent(): string {
 }
 
 export async function fetchWithProxy(url: string, headers: Record<string, string> = {}, allowRedirects: boolean = true): Promise<Response> {
-    const userAgent = generateRandomUserAgent();
+    // Block non-HTTP(S) schemes to prevent file:// or other protocol access
+    if (!/^https?:\/\//i.test(url)) {
+        throw new Error(`Refusing to fetch non-HTTP URL: ${url}`);
+    }
 
-    // random delay before request
-    console.log(url)
+    const userAgent = generateRandomUserAgent();
 
     try {
         const response = await fetch(url, {
@@ -42,6 +44,7 @@ export async function fetchWithProxy(url: string, headers: Record<string, string
                 ...headers, // merge additional headers
             },
             redirect: allowRedirects ? "follow" : "manual",
+            signal: AbortSignal.timeout(15_000),
         });
 
         if (!allowRedirects) {
@@ -60,6 +63,10 @@ export async function fetchWithProxy(url: string, headers: Record<string, string
 }
 
 export async function postWithProxy(url: string, body: string | Record<string, any> | URLSearchParams, headers: Record<string, string> = {}): Promise<Response> {
+    if (!/^https?:\/\//i.test(url)) {
+        throw new Error(`Refusing to POST non-HTTP URL: ${url}`);
+    }
+
     const userAgent = generateRandomUserAgent();
 
     let finalBody: string | URLSearchParams;
@@ -88,6 +95,7 @@ export async function postWithProxy(url: string, body: string | Record<string, a
                 ...headers,
             },
             body: finalBody,
+            signal: AbortSignal.timeout(15_000),
         });
 
         if (!response.ok) {

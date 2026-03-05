@@ -242,6 +242,7 @@ async function rpc<T = unknown>(method: string, params?: Record<string, unknown>
             Authorization: authHeader(),
         },
         body: JSON.stringify(body),
+        signal: AbortSignal.timeout(10_000),
     });
 
     if (!resp.ok) {

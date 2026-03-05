@@ -2,9 +2,9 @@ import express, { type Request, type Response, type Router } from "express";
 import { createCanvas, loadImage, registerFont } from "canvas";
 import NodeCache from "node-cache";
 import { db } from "../../utils/db.ts";
+import { redis } from "../../utils/db.ts";
 import path from "path";
 import { fileURLToPath } from "url";
-import Redis from "ioredis";
 import { env } from "../../env.ts";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -15,8 +15,6 @@ registerFont(
     path.join(__dirname, "../../../static/font/nintendo_NTLGDB_001.ttf"),
     { family: "nintendo" }
 );
-
-const redis = new Redis();
 
 const backgrounds = [
     path.join(__dirname, "../../../static/title/blue.png"),
@@ -131,9 +129,14 @@ router.get("/", async (req: Request, res: Response) => {
             encodeURIComponent(randomUser.mii_data) +
             "&type=face&width=226&resourceType=middle&texResolution=168&verifyCRC16=0";
 
+        // Fetch Mii image with timeout to avoid indefinite hangs
+        const miiResp = await fetch(mii_url, { signal: AbortSignal.timeout(10_000) });
+        if (!miiResp.ok) throw new Error(`Mii image fetch failed: ${miiResp.status}`);
+        const miiBuf = Buffer.from(await miiResp.arrayBuffer());
+
         const [bg, mii, mii_bg, name_bg] = await Promise.all([
             loadImage(randomBgPath!),
-            loadImage(mii_url),
+            loadImage(miiBuf),
             loadImage(mii_bg_path),
             loadImage(sign_path)
         ]);

@@ -43,7 +43,9 @@ export function parseServiceToken(req: Request): {
         };
     }
 
-    logger.info("Token debug — raw header value (first 40 chars): %s", rawHeader.substring(0, 40));
+    if (isDev) {
+        logger.info("Token debug — raw header value (first 40 chars): %s", rawHeader.substring(0, 40));
+    }
 
     let decoded: string;
 

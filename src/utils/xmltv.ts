@@ -5,10 +5,13 @@
  * caches parsed results in memory, and exposes query helpers.
  */
 
-import { readFileSync } from "fs";
-import { gunzipSync } from "zlib";
+import { readFile } from "fs/promises";
+import { gunzip } from "zlib";
+import { promisify } from "util";
 import { env } from "../env.ts";
 import { logger } from "./logger.ts";
+
+const gunzipAsync = promisify(gunzip);
 
 // ── Types ────────────────────────────────────────────────────
 export interface XmltvChannel {
@@ -37,6 +40,7 @@ let cachedChannels: Map<string, XmltvChannel> = new Map();
 let cachedProgrammes: XmltvProgramme[] = [];
 let lastRefresh = 0;
 let refreshIntervalMs = (env.VINO_JP_XMLTV_REFRESH_MINUTES ?? 30) * 60 * 1000;
+let refreshInProgress: Promise<void> | null = null;
 
 // ── Date helpers ─────────────────────────────────────────────
 
@@ -162,18 +166,16 @@ function extractProgrammes(xml: string): XmltvProgramme[] {
 /**
  * Read and decompress a single XMLTV file (supports .gz and plain .xml).
  */
-function readXmltvFile(filePath: string): string {
-    const raw = readFileSync(filePath.trim());
-    return filePath.trim().endsWith(".gz")
-        ? gunzipSync(raw).toString("utf-8")
-        : raw.toString("utf-8");
+async function readXmltvFile(filePath: string): Promise<string> {
+    const raw = await readFile(filePath.trim());
+    if (filePath.trim().endsWith(".gz")) {
+        const decompressed = await gunzipAsync(raw);
+        return decompressed.toString("utf-8");
+    }
+    return raw.toString("utf-8");
 }
 
-function ensureFresh(): void {
-    const now = Date.now();
-    if (now - lastRefresh < refreshIntervalMs && cachedChannels.size > 0) return;
-
-    // Support comma-separated list of file paths
+async function doRefresh(): Promise<void> {
     const pathSpec = env.VINO_JP_XMLTV_PATH ?? "./data/jp_merged_epg.xml.gz";
     const filePaths = pathSpec.split(",").map((p) => p.trim()).filter(Boolean);
     logger.info("XMLTV: (re)loading EPG from %d file(s): %s", filePaths.length, filePaths.join(", "));
@@ -183,11 +185,10 @@ function ensureFresh(): void {
         let mergedProgrammes: XmltvProgramme[] = [];
 
         for (const fp of filePaths) {
-            const xml = readXmltvFile(fp);
+            const xml = await readXmltvFile(fp);
             const channels = extractChannels(xml);
             const programmes = extractProgrammes(xml);
 
-            // Merge channels (later files overwrite earlier for duplicates)
             for (const [id, ch] of channels) {
                 if (!mergedChannels.has(id)) {
                     mergedChannels.set(id, ch);
@@ -195,10 +196,9 @@ function ensureFresh(): void {
             }
 
             mergedProgrammes = mergedProgrammes.concat(programmes);
-            logger.info("XMLTV:   %s → %d channels, %d programmes", fp, channels.size, programmes.length);
+            logger.info("XMLTV:   %s \u2192 %d channels, %d programmes", fp, channels.size, programmes.length);
         }
 
-        // Deduplicate programmes (same channel + same start time = duplicate)
         const seen = new Set<string>();
         mergedProgrammes = mergedProgrammes.filter((p) => {
             const key = `${p.channelId}|${p.startUtc}`;
@@ -207,12 +207,11 @@ function ensureFresh(): void {
             return true;
         });
 
-        // Sort by start time
         mergedProgrammes.sort((a, b) => a.startUtc - b.startUtc);
 
         cachedChannels = mergedChannels;
         cachedProgrammes = mergedProgrammes;
-        lastRefresh = now;
+        lastRefresh = Date.now();
 
         logger.success(
             "XMLTV: loaded %d channels, %d programmes (from %d files)",
@@ -221,14 +220,30 @@ function ensureFresh(): void {
             filePaths.length,
         );
     } catch (err: any) {
-        logger.error("XMLTV: failed to load EPG – %s", err.message);
-        // Don't wipe existing cache on reload failure
+        logger.error("XMLTV: failed to load EPG \u2013 %s", err.message);
+    }
+}
+
+async function ensureFresh(): Promise<void> {
+    const now = Date.now();
+    if (now - lastRefresh < refreshIntervalMs && cachedChannels.size > 0) return;
+
+    if (refreshInProgress) {
+        await refreshInProgress;
+        return;
+    }
+
+    refreshInProgress = doRefresh();
+    try {
+        await refreshInProgress;
+    } finally {
+        refreshInProgress = null;
     }
 }
 
 /** Returns all channels from the XMLTV file */
-export function getChannels(): Map<string, XmltvChannel> {
-    ensureFresh();
+export async function getChannels(): Promise<Map<string, XmltvChannel>> {
+    await ensureFresh();
     return cachedChannels;
 }
 
@@ -236,12 +251,12 @@ export function getChannels(): Map<string, XmltvChannel> {
  * Returns programmes for a specific channel within a UTC time window.
  * startUtc / endUtc are epoch seconds.
  */
-export function getPrograms(
+export async function getPrograms(
     channelId: string,
     startUtc: number,
     endUtc: number
-): XmltvProgramme[] {
-    ensureFresh();
+): Promise<XmltvProgramme[]> {
+    await ensureFresh();
     return cachedProgrammes.filter(
         (p) =>
             p.channelId === channelId &&
@@ -251,13 +266,19 @@ export function getPrograms(
 }
 
 /** Find a specific programme by its listingId */
-export function findByListingId(listingId: string): XmltvProgramme | undefined {
-    ensureFresh();
+export async function findByListingId(listingId: string): Promise<XmltvProgramme | undefined> {
+    await ensureFresh();
     return cachedProgrammes.find((p) => p.listingId === listingId);
 }
 
 /** All programmes (for broad searches) */
-export function getAllPrograms(): XmltvProgramme[] {
-    ensureFresh();
+export async function getAllPrograms(): Promise<XmltvProgramme[]> {
+    await ensureFresh();
     return cachedProgrammes;
+}
+
+/** Force an immediate refresh (for admin endpoints) */
+export async function forceRefresh(): Promise<void> {
+    lastRefresh = 0;
+    await ensureFresh();
 }

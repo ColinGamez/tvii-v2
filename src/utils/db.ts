@@ -1,4 +1,5 @@
 import knex from "knex";
+import Redis from "ioredis";
 import { env } from "../env.ts";
 
 export const db = knex({
@@ -24,3 +25,6 @@ export const db_whitelist = knex({
         charset: "utf8mb4",
     },
 });
+
+/** Shared Redis singleton — use this instead of creating new Redis() per module */
+export const redis = new Redis();
