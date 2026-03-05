@@ -281,6 +281,26 @@ router.post(
     }
 );
 
+router.get("/favorites", async (req: Request, res: Response): Promise<any> => {
+    try {
+        const token = parseServiceToken(req);
+        if (!token && !isDev) {
+            return res.status(401).json({ status: "error", error: "Unauthorized" });
+        }
+        const pid = token?.pid ?? 0;
+
+        const rows = await db("favorite_channels")
+            .where("pid", pid)
+            .select("channel_id");
+
+        const channelIds = rows.map((r: any) => r.channel_id);
+        return res.json({ status: "ok", channels: channelIds });
+    } catch (err: any) {
+        logger.error("Error fetching favorites: %s", err.message);
+        return res.status(500).json({ status: "error", error: "Internal server error" });
+    }
+});
+
 router.get("/reminders", async (req: Request, res: Response): Promise<any> => {
     try {
         const token = parseServiceToken(req);

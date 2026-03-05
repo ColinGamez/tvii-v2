@@ -1,5 +1,5 @@
 {
-  "name": "tvii-us-d1",
+  "name": "tvii-jp",
   "module": "index.ts",
   "type": "module",
   "private": true,
@@ -33,7 +33,6 @@
     "ioredis": "^5.9.2",
     "knex": "^3.1.0",
     "multer": "^2.0.2",
-    "mysql": "^2.18.1",
     "mysql2": "^3.16.1",
     "node-cache": "^5.1.2",
     "sharp": "^0.34.5",

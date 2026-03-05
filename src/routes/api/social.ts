@@ -650,7 +650,7 @@ router.post(
                                 `---`,
                             ].join("\n");
                             const fs = await import("fs");
-                            fs.appendFileSync("roseverse_debug.log", debugInfo + "\n");
+                            await fs.promises.appendFile("roseverse_debug.log", debugInfo + "\n");
                         }
 
                         const olvResp = await fetch(`${olvApiUrl}/v1/posts`, {
@@ -669,7 +669,7 @@ router.post(
                         // Append response to debug log (dev only)
                         if (isDev) {
                             const fs = await import("fs");
-                            fs.appendFileSync("roseverse_debug.log",
+                            await fs.promises.appendFile("roseverse_debug.log",
                                 `Response ${olvResp.status}:\n${olvBody}\n\n`);
                         }
                         logger.info("[Roseverse] POST -> %d (title_id=%s)", olvResp.status, olvTitleId);

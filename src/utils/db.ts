@@ -1,6 +1,7 @@
 import knex from "knex";
 import Redis from "ioredis";
 import { env } from "../env.ts";
+import { logger } from "./logger.ts";
 
 export const db = knex({
     client: "mysql2",
@@ -28,3 +29,5 @@ export const db_whitelist = knex({
 
 /** Shared Redis singleton — use this instead of creating new Redis() per module */
 export const redis = new Redis();
+
+redis.on("error", (err) => logger.error("Redis connection error: %s", err.message));

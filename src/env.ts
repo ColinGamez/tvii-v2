@@ -62,7 +62,7 @@ export const env = createEnv({
       .string()
       .optional()
       .default("0")
-      .transform((str) => str.split(",").map((s) => s.trim())),
+      .transform((str) => str.split(",").map((s) => parseInt(s.trim(), 10)).filter((n) => !isNaN(n))),
 
     // ── JP XMLTV EPG ─────────────────────────────────────────
     VINO_JP_XMLTV_ENABLED: z

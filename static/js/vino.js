@@ -2350,7 +2350,7 @@ function initVinoHome() {
                 });
         }
 
-        snapToClosestProgram = function (triggerCallback) {
+        var snapToClosestProgram = function (triggerCallback) {
             var programs = container.querySelectorAll(".program");
             var len = programs.length;
             if (!len) return;
@@ -2672,6 +2672,10 @@ function initVinoHome() {
 
 
     function setupClock() {
+        // Clear any previous clock timers to prevent stacking intervals
+        clearTimeout(window.clockTimeout);
+        clearInterval(window.clockInterval);
+
         var clock = document.querySelector(".bottom .clock");
         if (!clock) return;
 
@@ -2779,6 +2783,7 @@ function initVinoHome() {
 
 
     function setupProgramTimer() {
+        clearInterval(window.infoUpdInterval);
         window.infoUpdInterval = setInterval(function () {
             updateTabListProgram();
         }, 25 * 1000);
@@ -2883,7 +2888,7 @@ function initVinoHome() {
                     img = "/image/show/426x240/" + details.program.showPicture;
                 }
 
-                var canSetDetailInfo = !isValidImage || Math.random() < 0.8;
+                var canSetDetailInfo = true;
 
                 if (canSetDetailInfo) {
                     var programDescription = details.program.description;
@@ -4554,6 +4559,12 @@ function initVinoHome() {
 
     var miiUserDetailInterval = null;
 
+    // Clear Mii blink interval whenever navigating away
+    $(window).on("popstate", function () {
+        clearInterval(miiUserDetailInterval);
+        miiUserDetailInterval = null;
+    });
+
     function setMiiUserDetailListener(pid) {
         var miiDetModal = $(".miiverse-user-details")
 
@@ -5931,6 +5942,12 @@ function initVinoHome() {
             var h = slotTime.getUTCHours();
             var m = slotTime.getUTCMinutes();
             var timeStr = pad(h) + ":" + pad(m);
+            // Show date prefix on midnight or on the first slot if it's a different day
+            if (h === 0 && m === 0) {
+                timeStr = pad(slotTime.getUTCMonth() + 1) + "/" + pad(slotTime.getUTCDate()) + " " + timeStr;
+            } else if (s === 0) {
+                timeStr = pad(slotTime.getUTCMonth() + 1) + "/" + pad(slotTime.getUTCDate()) + " " + timeStr;
+            }
             var slotA = $("<a>").text(timeStr).css("width", slotWidthPx + "px");
             tc.append(slotA);
         }
@@ -6092,6 +6109,22 @@ function initVinoHome() {
         $(".guide-view").hide();
         detPage.show();
 
+        // Wire up reminder / recommend action buttons if we have details
+        var mockDetails = {
+            program: {
+                listingId: prog.listingId || "",
+                showName: prog.showName || "",
+                start: prog.start || "",
+                description: prog.description || ""
+            },
+            channel: {
+                id: channel.id || channel.number || "",
+                name: channel.name || "",
+                number: channel.number || ""
+            }
+        };
+        setupProgramActionButtons(detPage, mockDetails);
+
         // Back button returns to guide
         $(".bottom .back").off("click.guidedet").on("click.guidedet", function () {
             detPage.hide();
@@ -6127,6 +6160,24 @@ function initVinoHome() {
         vino.loading_setIconRect(360, 160, 120, 120);
         vino.loading_setIconAppear(true);
 
+        // Fetch user's favorite channels, then build recommendations
+        var favChannelSet = {};
+        tvii.sendXHRNoTimeout("GET", "/api/v1/act/favorites", function (resp) {
+            try {
+                var parsed = JSON.parse(resp);
+                if (parsed.channels && parsed.channels.length) {
+                    for (var f = 0; f < parsed.channels.length; f++) {
+                        favChannelSet[String(parsed.channels[f])] = true;
+                    }
+                }
+            } catch (e) { /* ignore parse errors */ }
+            fetchRecommendedGuide();
+        }, function () {
+            // Favorites fetch failed — proceed without them
+            fetchRecommendedGuide();
+        });
+
+        function fetchRecommendedGuide() {
         // Fetch a broader window (6 hours) and pick diverse programs
         var currentTime = tvii.getLockedHourTimestamp();
         tvii.requestProgramGuide(
@@ -6155,19 +6206,36 @@ function initVinoHome() {
                         if (pEnd > nowTimestamp && pStart < nowTimestamp + 10800) {
                             recommended.push({
                                 channel: ch,
-                                programs: [p]
+                                programs: [p],
+                                isFavorite: !!favChannelSet[String(ch.number)]
                             });
                         }
                     }
                 }
 
-                // Shuffle for variety
-                for (var k = recommended.length - 1; k > 0; k--) {
-                    var r = Math.floor(Math.random() * (k + 1));
-                    var tmp = recommended[k];
-                    recommended[k] = recommended[r];
-                    recommended[r] = tmp;
+                // Sort: favorite channels first, then shuffle within each group
+                var favProgs = [];
+                var otherProgs = [];
+                for (var fi = 0; fi < recommended.length; fi++) {
+                    if (recommended[fi].isFavorite) {
+                        favProgs.push(recommended[fi]);
+                    } else {
+                        otherProgs.push(recommended[fi]);
+                    }
                 }
+
+                // Shuffle each group independently for variety
+                function shuffleArr(arr) {
+                    for (var k = arr.length - 1; k > 0; k--) {
+                        var r = Math.floor(Math.random() * (k + 1));
+                        var tmp = arr[k];
+                        arr[k] = arr[r];
+                        arr[r] = tmp;
+                    }
+                }
+                shuffleArr(favProgs);
+                shuffleArr(otherProgs);
+                recommended = favProgs.concat(otherProgs);
 
                 // Limit to what fits on screen
                 var maxRecommended = Math.min(recommended.length, limit);
@@ -6199,6 +6267,7 @@ function initVinoHome() {
                 vino.loading_setIconAppear(false);
             }
         );
+        } // end fetchRecommendedGuide
     }
 
     function onProgramPreviewPopstate(e) {

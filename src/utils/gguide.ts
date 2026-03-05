@@ -556,88 +556,78 @@ async function refreshGrids(): Promise<void> {
     const allChannels: Map<string, GGuideChannel> = new Map();
     let allPrograms: GGuideProgram[] = [];
 
-    // Scrape today's grid for each broadcast type
-    for (const broad of broadTypes) {
-        const url = gridUrl(broad, "today");
-        const cacheKey = `gguide:grid:${broad}:${todayJstStr()}`;
+    // Pre-compute tomorrow date strings once (shared by all broad types)
+    const realToday = realTodayJst();
+    const realTodayDate = new Date(
+        `${realToday.slice(0, 4)}-${realToday.slice(4, 6)}-${realToday.slice(6, 8)}T12:00:00+09:00`,
+    );
+    const realTomorrowDate = new Date(realTodayDate.getTime() + 24 * 60 * 60 * 1000);
+    const rParts = new Intl.DateTimeFormat("sv-SE", {
+        timeZone: "Asia/Tokyo",
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+    }).formatToParts(realTomorrowDate);
+    const rGet = (t: string) => rParts.find((p) => p.type === t)?.value ?? "";
+    const tomorrowStr = `${rGet("year")}${rGet("month")}${rGet("day")}`;
+    const sysTomorrow = new Date(Date.now() + 24 * 60 * 60 * 1000);
+    const sParts = new Intl.DateTimeFormat("sv-SE", {
+        timeZone: "Asia/Tokyo",
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+    }).formatToParts(sysTomorrow);
+    const sGet = (t: string) => sParts.find((p) => p.type === t)?.value ?? "";
+    const sysTomorrowStr = `${sGet("year")}${sGet("month")}${sGet("day")}`;
 
+    /** Fetch one grid page (today or tomorrow) for a broadcast type. */
+    async function fetchGridPage(
+        broad: "dt" | "bs" | "cs",
+        dateStr: string,
+        cacheKey: string,
+        label: string,
+    ): Promise<{ channels: GGuideChannel[]; programs: GGuideProgram[] } | null> {
         let html: string | null = null;
-
-        // Check Redis first
-        const cachedHtml = await redis.get(cacheKey);
-        if (cachedHtml) {
-            html = cachedHtml;
+        const cached = await redis.get(cacheKey);
+        if (cached) {
+            html = cached;
         } else {
             try {
-                html = await gFetch(url);
-                // Cache raw HTML in Redis
+                html = await gFetch(gridUrl(broad, dateStr));
                 await redis.set(cacheKey, html, "EX", GRID_CACHE_TTL);
             } catch (err: any) {
-                logger.error("G-Guide: failed to fetch %s grid: %s", broad, err.message);
-                continue;
+                if (label.includes("tomorrow")) {
+                    logger.warn("G-Guide: tomorrow's %s grid not available: %s", broad, err.message);
+                } else {
+                    logger.error("G-Guide: failed to fetch %s grid: %s", broad, err.message);
+                }
+                return null;
             }
         }
-
-        const { channels, programs } = parseGrid(html, broad);
-
-        for (const ch of channels) {
-            allChannels.set(ch.id, ch);
-        }
-        allPrograms = allPrograms.concat(programs);
-
-        logger.info("G-Guide:   %s → %d channels, %d programs", broad, channels.length, programs.length);
+        return parseGrid(html, broad);
     }
 
-    // Also try to scrape tomorrow's grid to get more future schedule
-    for (const broad of broadTypes) {
-        // Use real-world tomorrow (not system tomorrow) for the URL,
-        // since bangumi.org only has real-world dates.
-        const realToday = realTodayJst();                               // e.g. "20250305"
-        const realTodayDate = new Date(
-            `${realToday.slice(0, 4)}-${realToday.slice(4, 6)}-${realToday.slice(6, 8)}T12:00:00+09:00`,
-        );
-        const realTomorrowDate = new Date(realTodayDate.getTime() + 24 * 60 * 60 * 1000);
-        const rParts = new Intl.DateTimeFormat("sv-SE", {
-            timeZone: "Asia/Tokyo",
-            year: "numeric",
-            month: "2-digit",
-            day: "2-digit",
-        }).formatToParts(realTomorrowDate);
-        const rGet = (t: string) => rParts.find((p) => p.type === t)?.value ?? "";
-        const tomorrowStr = `${rGet("year")}${rGet("month")}${rGet("day")}`;
+    // Fire all 6 fetches (today × 3 + tomorrow × 3) in parallel
+    const jobs = broadTypes.flatMap((broad) => [
+        fetchGridPage(broad, "today", `gguide:grid:${broad}:${todayJstStr()}`, `${broad}/today`),
+        fetchGridPage(broad, tomorrowStr, `gguide:grid:${broad}:${sysTomorrowStr}`, `${broad}/tomorrow`),
+    ]);
+    const results = await Promise.allSettled(jobs);
 
-        // Cache key uses system date for tomorrow so it stays consistent
-        const sysTomorrow = new Date(Date.now() + 24 * 60 * 60 * 1000);
-        const sParts = new Intl.DateTimeFormat("sv-SE", {
-            timeZone: "Asia/Tokyo",
-            year: "numeric",
-            month: "2-digit",
-            day: "2-digit",
-        }).formatToParts(sysTomorrow);
-        const sGet = (t: string) => sParts.find((p) => p.type === t)?.value ?? "";
-        const sysTomorrowStr = `${sGet("year")}${sGet("month")}${sGet("day")}`;
+    for (let i = 0; i < results.length; i++) {
+        const r = results[i];
+        const broad = broadTypes[Math.floor(i / 2)];
+        const isToday = i % 2 === 0;
+        const label = isToday ? broad : `${broad} (tomorrow)`;
 
-        const url = gridUrl(broad, tomorrowStr);
-        const cacheKey = `gguide:grid:${broad}:${sysTomorrowStr}`;
+        if (r.status !== "fulfilled" || !r.value) continue;
+        const { channels, programs } = r.value;
 
-        let html: string | null = null;
-        const cachedHtml = await redis.get(cacheKey);
-        if (cachedHtml) {
-            html = cachedHtml;
-        } else {
-            try {
-                html = await gFetch(url);
-                await redis.set(cacheKey, html, "EX", GRID_CACHE_TTL);
-            } catch (err: any) {
-                // Tomorrow might not be available yet – that's OK
-                logger.warn("G-Guide: tomorrow's %s grid not available: %s", broad, err.message);
-                continue;
-            }
+        if (isToday) {
+            for (const ch of channels) allChannels.set(ch.id, ch);
         }
-
-        const { programs } = parseGrid(html, broad);
         allPrograms = allPrograms.concat(programs);
-        logger.info("G-Guide:   %s (tomorrow) → %d programs", broad, programs.length);
+        logger.info("G-Guide:   %s → %d channels, %d programs", label, channels.length, programs.length);
     }
 
     // Deduplicate programs (same channel + same start time)

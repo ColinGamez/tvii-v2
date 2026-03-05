@@ -1,5 +1,5 @@
 import type { Request } from "express";
-import { env } from "../../src/env.ts";
+import { env } from "../env.ts";
 import { logger } from "./logger.ts";
 
 const isDev = ["dev", "stg"].includes(
