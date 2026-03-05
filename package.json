@@ -1,0 +1,43 @@
+{
+  "name": "tvii-us-d1",
+  "module": "index.ts",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "dev": "bun --watch index.ts",
+    "start": "bun index.ts",
+    "db:up": "docker-compose up -d",
+    "db:down": "docker-compose down",
+    "db:init": "docker exec -i tvii-mysql mysql -uroot -proot < scripts/schema.sql && docker exec -i tvii-mysql mysql -uroot -proot < scripts/whitelist.sql",
+    "epg:lineup": "bun run scripts/generate_lineup.ts"
+  },
+  "devDependencies": {
+    "@types/bun": "latest",
+    "@types/cheerio": "^0.22.35",
+    "@types/express": "^5.0.6",
+    "@types/multer": "^2.0.0"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  },
+  "dependencies": {
+    "@atproto/api": "^0.18.16",
+    "@aws-sdk/client-s3": "^3.971.0",
+    "@pretendonetwork/mii-js": "^1.0.10",
+    "@t3-oss/env-core": "^0.13.10",
+    "canvas": "^3.2.1",
+    "chalk": "^5.6.2",
+    "cheerio": "^1.1.2",
+    "ejs": "^4.0.1",
+    "express": "^5.2.1",
+    "ioredis": "^5.9.2",
+    "knex": "^3.1.0",
+    "multer": "^2.0.2",
+    "mysql": "^2.18.1",
+    "mysql2": "^3.16.1",
+    "node-cache": "^5.1.2",
+    "sharp": "^0.34.5",
+    "twitter-api-v2": "^1.29.0",
+    "zod": "^4.3.5"
+  }
+}

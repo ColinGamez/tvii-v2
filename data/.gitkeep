@@ -1,0 +1,4 @@
+# This directory holds EPG data files:
+# - jp_merged_epg.xml.gz  (XMLTV)
+# - japan.json or japan.md (lineup mapping)
+# These files are NOT committed to git.
