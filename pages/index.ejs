@@ -4,7 +4,7 @@
 <head>
   <title>Nintendo TVii</title>
   <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
-  <link href="/css/vino.css?v=15" rel="stylesheet" />
+  <link href="/css/vino.css?v=16" rel="stylesheet" />
   <script>
     function handleScriptError(scriptName) {
       alert("Error !!!:" + scriptName);
@@ -14,7 +14,7 @@
     }
   </script>
   <script src="/js/jquery-3.7.1.min.js" onerror="handleScriptError('jquery-3.7.1.min.js')"></script>
-  <script src="/js/vino.js?v=15" onerror="handleScriptError('vino.js')"></script>
+  <script src="/js/vino.js?v=16" onerror="handleScriptError('vino.js')"></script>
   <%- include('partials/locale-script', { lang }) %>
 
 </head>
@@ -53,7 +53,9 @@
 
       <div class="header miiverse" style="display: none">
         <a href="javascript:void(0)" class="help"></a>
-        <span></span>
+        <span class="olv-channel"></span>
+        <span class="olv-onair" data-loc="vino.home.header.live"></span>
+        <span class="olv-title"></span>
       </div>
 
       <div class="spacing" style="height: 70px; display: block"></div>
@@ -476,6 +478,13 @@
           </span>
           <span></span>
           <span>------------------------</span>
+        </div>
+
+        <div class="channel-filter" style="display:none">
+          <a href="javascript:void(0)" class="chf-btn chf-all active" data-filter="all" data-loc="vino.home.filter.all"></a>
+          <a href="javascript:void(0)" class="chf-btn chf-dt" data-filter="dt" data-loc="vino.home.filter.dt"></a>
+          <a href="javascript:void(0)" class="chf-btn chf-bs" data-filter="bs" data-loc="vino.home.filter.bs"></a>
+          <a href="javascript:void(0)" class="chf-btn chf-cs" data-filter="cs" data-loc="vino.home.filter.cs"></a>
         </div>
 
         <div class="contents">

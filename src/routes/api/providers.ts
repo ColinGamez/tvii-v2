@@ -1013,6 +1013,48 @@ router.get("/lineup/:country/:provider_id", async (req: Request, res: Response) 
     }
 });
 
+// ── "What's on now" for a single G-Guide channel ────────────
+router.get("/now", async (req: Request, res: Response) => {
+    const { channelId, country, provider_id } = req.query as any;
+    try {
+        if (country !== "JP" || provider_id !== "gguide" || !channelId) {
+            return res.status(400).json({ hasError: 1, error: { code: 400, message: "Bad request" } });
+        }
+
+        const now = jstNow();
+        const progs = await gguide.getPrograms(String(channelId), now, now + 1);
+        if (!progs.length) {
+            return res.status(404).json({ hasError: 1, error: { code: 404, message: "No program airing" } });
+        }
+
+        const prog = progs[0];
+        const allCh = await getJpGGuideChannels();
+        const channel = allCh.find((c) => c.id === prog.channelId) ?? {
+            id: prog.channelId, station: prog.channelId, callsign: prog.channelId,
+            number: "0", name: prog.channelId, logo: null, url: prog.channelId,
+        };
+
+        const program = {
+            start: prog.startJst,
+            end: prog.endJst,
+            duration: Math.round((prog.endUtc - prog.startUtc) / 60),
+            showName: prog.title,
+            episodeTitle: null as string | null,
+            description: prog.description,
+            showType: prog.genre ?? "Series",
+            showTypeID: gguide.genreToShowTypeId(prog.genreClass, prog.genre, prog.title),
+            listingId: prog.listingId,
+            showId: prog.listingId,
+            seriesId: prog.channelId,
+        };
+
+        return res.status(200).json({ hasError: 0, data: { channel, program } });
+    } catch (err: any) {
+        logger.error("Now error: %s", err);
+        return res.status(500).json({ hasError: 1, error: { code: 500, message: "Internal Server Error" } });
+    }
+});
+
 router.get("/info", async (req: Request, res: Response) => {
     const { date, listingId, channelNum, tz_name, country, provider_id } = req.query as any;
 

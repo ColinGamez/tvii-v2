@@ -60,6 +60,10 @@ tvii.locFile = {
     "vino.setup.help.favorite_channel": "Selecciona tus canales favoritos,\nlas recomendaciones también\nharan uso de esta información.\n\nPuedes modificar tus ajustes de canales favoritos después de la configuración inicial.",
     "vino.setup.help.set_socials": "Puedes vincular tus cuentas de redes sociales para que los comentarios de programas de TV, películas, y actors se envien alli.\n\nPor ahora, solo se soporta Bluesky, y no se requiere iniciar sesión para continuar.\n\nPuedes cambiar estos ajustes después de la configuración inicial.",
     "vino.home.header.live": "En vivo",
+    "vino.home.filter.all": "Todos",
+    "vino.home.filter.dt": "Terrestre",
+    "vino.home.filter.bs": "BS",
+    "vino.home.filter.cs": "CS",
     "vino.home.header.guide": "Guía",
     "vino.home.guide.no_data": "No hay datos de programación disponibles para esta franja horaria.",
     "vino.home.header.rec": "Recomendado",
@@ -140,6 +144,8 @@ tvii.locFile = {
     "vino.home.olv.crosspost.post.input_required": 'Por favor introduce un mensaje.',
 
     "vino.home.olv.crosspost.post.memo_required": 'Por favor dibuja algo primero.',
+
+    "vino.home.olv.help.until": "En vivo hasta %s",
 
     "vino.home.olv.crosspost.post.time.less_than_minute_ago": 'Hace menos de un minuto',
     "vino.home.olv.crosspost.post.time.minute_ago": 'Hace un minuto',

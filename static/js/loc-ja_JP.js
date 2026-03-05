@@ -58,6 +58,10 @@ tvii.locFile = {
     "vino.setup.help.favorite_channel": "お気に入りのチャンネルを選択してください。\n今後の番組のおすすめに反映されます。\n\n初期設定後にもお気に入りの設定を\n変更できます。",
     "vino.setup.help.set_socials": "ソーシャルメディアを連携すると、テレビ番組へのコメントがそちらにも投稿されます。\n\n現在はBlueskyのみ対応しています。ログインは必須ではありません。\n\n初期設定後にもこの設定を変更できます。",
     "vino.home.header.live": "放送中",
+    "vino.home.filter.all": "すべて",
+    "vino.home.filter.dt": "地デジ",
+    "vino.home.filter.bs": "BS",
+    "vino.home.filter.cs": "CS",
     "vino.home.header.guide": "番組表",
     "vino.home.guide.no_data": "この時間帯の番組データがありません。",
     "vino.home.header.rec": "おすすめ",
@@ -138,6 +142,8 @@ tvii.locFile = {
     "vino.home.olv.crosspost.post.input_required": 'メッセージを入力してください。',
 
     "vino.home.olv.crosspost.post.memo_required": '先に何か描いてください。',
+
+    "vino.home.olv.help.until": "%sまで放送",
 
     "vino.home.olv.crosspost.post.time.less_than_minute_ago": '1分以内',
     "vino.home.olv.crosspost.post.time.minute_ago": '1分前',

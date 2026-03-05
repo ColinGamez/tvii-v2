@@ -3378,6 +3378,7 @@ function initVinoHome() {
                     updateTabListProgram();
                     window.setListenerToProgram();
                     updatePagiMenuState();
+                    applyChannelFilter();
                     vino.loading_setIconAppear(false);
                     vino.lyt_setFixedFrameSemitransparency(false);
                     guide = null;
@@ -3432,6 +3433,54 @@ function initVinoHome() {
 
         // Initialize PagiMenu state on first load
         updatePagiMenuState();
+    }
+
+    // ── Channel type filter (地デジ / BS / CS) ──
+    var activeChannelFilter = "all";
+
+    function setupChannelFilter() {
+        // Only show for JP provider
+        if (tvii.getCountry() !== "JP") return;
+
+        var $filterBar = $(".channel-filter");
+        $filterBar.show();
+
+        $filterBar.find(".chf-btn").off("click").on("click", function () {
+            if (isHeaderButtonBlocked) return;
+            var $btn = $(this);
+            if ($btn.hasClass("active")) return;
+
+            vino.soundPlayVolume("SE_WAVE_OK_SUB", 30);
+
+            $filterBar.find(".chf-btn").removeClass("active");
+            $btn.addClass("active");
+
+            activeChannelFilter = $btn.attr("data-filter") || "all";
+            applyChannelFilter();
+        });
+    }
+
+    function applyChannelFilter() {
+        var programs = document.querySelectorAll(".program-list .contents > .program");
+
+        for (var i = 0; i < programs.length; i++) {
+            var el = programs[i];
+            var churl = el.getAttribute("data-churl") || "";
+
+            if (activeChannelFilter === "all") {
+                el.style.display = "";
+            } else {
+                // Channel IDs like "gguide-dt-1", "gguide-bs-101"
+                var match = churl.match(/^gguide-(dt|bs|cs)-/);
+                var broad = match ? match[1] : "";
+
+                if (broad === activeChannelFilter) {
+                    el.style.display = "";
+                } else {
+                    el.style.display = "none";
+                }
+            }
+        }
     }
 
     function programConfirmSel(program, isTriggered) {
@@ -4300,6 +4349,9 @@ function initVinoHome() {
                             headOlv.attr("data-olv-channelid", details.channel.id)
                             headOlv.attr("data-olv-episodeid", details.program.showId)
                             headOlv.attr("data-olv-parentid", details.program.seriesId)
+                            headOlv.attr("data-olv-prend", details.program.end || "")
+                            headOlv.attr("data-olv-chnum", details.channel.number || "")
+                            headOlv.attr("data-olv-chname", details.channel.name || "")
 
                             var text = programName;
 
@@ -4308,10 +4360,16 @@ function initVinoHome() {
                                 text += "「" + programEpisode + "」";
                             }
 
-                            headOlv.find("span").text(text);
+                            headOlv.find(".olv-title").text(text);
+                            headOlv.find(".olv-channel").text(details.channel.name || "");
+                            headOlv.find(".olv-onair").text(tvii.getLoc("vino.home.header.live"));
 
                             vino.navi_setMoveMethod(1);
                             requestPostsMiiversePage();
+
+                            // Start EPG auto-switch and post auto-refresh timers
+                            startOlvProgramTimer();
+                            startOlvAutoRefresh();
                         },
                         function () {
                             tvii.alert(
@@ -4328,13 +4386,20 @@ function initVinoHome() {
     }
 
     function cleanMiiversePage() {
+        stopOlvProgramTimer();
+        stopOlvAutoRefresh();
         headOlv.attr("data-olv-topictag", "")
         headOlv.attr("data-olv-prname", "")
         headOlv.attr("data-olv-prepisode", "")
         headOlv.attr("data-olv-episodeid", "")
         headOlv.attr("data-olv-channelid", "")
         headOlv.attr("data-olv-parentid", "")
-        headOlv.find("span").text("");
+        headOlv.attr("data-olv-prend", "")
+        headOlv.attr("data-olv-chnum", "")
+        headOlv.attr("data-olv-chname", "")
+        headOlv.find(".olv-title").text("");
+        headOlv.find(".olv-channel").text("");
+        headOlv.find(".olv-onair").text("");
         if (miiverseContainer) {
             detachMiiverseScrollListener(); // ensure no old listeners
         }
@@ -4500,6 +4565,8 @@ function initVinoHome() {
     var miiverseLoadedCount = 0;
 
     var miiverseContainer = null;
+    var olvProgramTimer = null;
+    var olvAutoRefreshTimer = null;
 
     function detachMiiverseScrollListener() {
         if (miiverseContainer) {
@@ -4623,6 +4690,163 @@ function initVinoHome() {
         vino.requestGarbageCollect();
 
         loadMiiversePosts(null, true);
+    }
+
+    // ── EPG auto-switch: detect program change while in community view ──
+    function startOlvProgramTimer() {
+        clearInterval(olvProgramTimer);
+        olvProgramTimer = setInterval(checkMiiverseProgramEnd, 25000);
+    }
+
+    function stopOlvProgramTimer() {
+        clearInterval(olvProgramTimer);
+        olvProgramTimer = null;
+    }
+
+    function checkMiiverseProgramEnd() {
+        var endStr = headOlv.attr("data-olv-prend");
+        if (!endStr) return;
+
+        var nowTimestamp = ((Date.now() / 1000) | 0) + tvii.getUtcOffset();
+        var endTimestamp = tvii.parseLocalDateTime(endStr);
+
+        if (nowTimestamp < endTimestamp) return;
+
+        // Program has ended — fetch what's on now for this channel
+        var channelId = headOlv.attr("data-olv-channelid");
+        if (!channelId) return;
+
+        // Prevent rapid re-fire while fetching
+        headOlv.attr("data-olv-prend", "");
+
+        tvii.sendXHRNoTimeout(
+            "GET",
+            "/api/v1/providers/now" +
+            "?channelId=" + encodeURIComponent(channelId) +
+            "&country=" + tvii.getCountry() +
+            "&provider_id=" + tvii.getTVProviderID(),
+            function (responseText) {
+                var resp = JSON.parse(responseText);
+                if (resp.hasError || !resp.data) return;
+
+                var program = resp.data.program;
+                var channel = resp.data.channel;
+
+                // Now fetch full details using the info endpoint
+                tvii.requestProgramDetails(
+                    program.listingId,
+                    channel.number,
+                    null,
+                    function (details) {
+                        var programName = details.program.showName;
+                        var programEpisode = details.program.episodeTitle;
+                        var topicTagHeader = programName;
+
+                        if (details.program.teamInfo) {
+                            if (details.program.teamInfo.league &&
+                                details.program.teamInfo.team1 &&
+                                details.program.teamInfo.team2
+                            ) {
+                                topicTagHeader = details.program.teamInfo.league + ": " +
+                                    details.program.teamInfo.team1 + " v. " + details.program.teamInfo.team2;
+                            }
+                        } else if (
+                            details.program.episodeTitle &&
+                            details.program.episodeTitle != details.program.showName
+                        ) {
+                            var episodeTitle = details.program.episodeTitle;
+                            if (episodeTitle.length > 30) {
+                                episodeTitle = episodeTitle.slice(0, 30) + "...";
+                            }
+                            topicTagHeader += "「" + episodeTitle + "」";
+                        }
+
+                        headOlv.attr("data-olv-prname", programName);
+                        headOlv.attr("data-olv-topictag", topicTagHeader);
+                        headOlv.attr("data-olv-prepisode", programEpisode || "");
+                        headOlv.attr("data-olv-channelid", details.channel.id);
+                        headOlv.attr("data-olv-episodeid", details.program.showId);
+                        headOlv.attr("data-olv-parentid", details.program.seriesId);
+                        headOlv.attr("data-olv-prend", details.program.end || "");
+
+                        var text = programName;
+                        if (programEpisode && programEpisode != programName) {
+                            text += "「" + programEpisode + "」";
+                        }
+                        headOlv.find(".olv-title").text(text);
+                        headOlv.find(".olv-channel").text(details.channel.name || "");
+                        headOlv.find(".olv-onair").text(tvii.getLoc("vino.home.header.live"));
+
+                        // Reload the post feed for the new program
+                        requestPostsMiiversePage();
+                    },
+                    function () {
+                        // Restore end time so it retries next tick
+                        headOlv.attr("data-olv-prend", endStr);
+                    }
+                );
+            },
+            function () {
+                // Network error — restore end time for retry
+                headOlv.attr("data-olv-prend", endStr);
+            }
+        );
+    }
+
+    // ── Post auto-refresh: poll for new posts while community view is open ──
+    function startOlvAutoRefresh() {
+        clearInterval(olvAutoRefreshTimer);
+        olvAutoRefreshTimer = setInterval(autoRefreshMiiversePosts, 45000);
+    }
+
+    function stopOlvAutoRefresh() {
+        clearInterval(olvAutoRefreshTimer);
+        olvAutoRefreshTimer = null;
+    }
+
+    function autoRefreshMiiversePosts() {
+        if (miiverseIsLoading) return;
+
+        var episodeId = headOlv.attr("data-olv-episodeid");
+        if (!episodeId) return;
+
+        // Get the first (newest) post ID to check for newer posts
+        var $firstPost = $(".miiverse-modal .post-container .post").first();
+        var newestPostId = $firstPost.data("post-id") || null;
+
+        if (!newestPostId) return; // No posts loaded yet
+
+        tvii.posts.requestPosts(
+            miiversePostsLimit,
+            null, // no cursor = newest posts
+            ["PR" + episodeId],
+            function (posts) {
+                if (!posts || !posts.length) return;
+
+                // Find posts newer than our current newest
+                var newPosts = [];
+                for (var i = 0; i < posts.length; i++) {
+                    if (posts[i].id === newestPostId) break;
+                    newPosts.push(posts[i]);
+                }
+
+                if (!newPosts.length) return;
+
+                // Prepend new posts to the top
+                var container = $(".miiverse-modal .post-container");
+                var frag = document.createDocumentFragment();
+                for (var i = 0; i < newPosts.length; i++) {
+                    var postEl = buildPostElement(newPosts[i]);
+                    postEl.addClass("post-enter");
+                    frag.appendChild(postEl[0]);
+                }
+                container.prepend(frag);
+                miiverseLoadedCount += newPosts.length;
+            },
+            function () {
+                // Silent fail on auto-refresh
+            }
+        );
     }
 
     function openMiiUserDetailScreen(pid) {
@@ -5851,6 +6075,28 @@ function initVinoHome() {
         });
     }
 
+    // Help button on miiverse header - show program details popup
+    headOlv.find(".help").on("click", function () {
+        var chName = headOlv.attr("data-olv-chname") || "";
+        var prName = headOlv.attr("data-olv-prname") || "";
+        var prEnd = headOlv.attr("data-olv-prend") || "";
+
+        var msg = "";
+        if (chName) msg += chName + "\n";
+        if (prName) msg += prName + "\n";
+        if (prEnd) {
+            var parts = prEnd.split(/[-T: ]/);
+            var hh = parts[3] || "00";
+            var mm = parts[4] || "00";
+            msg += tvii.getLoc("vino.home.olv.help.until", hh + ":" + mm);
+        }
+
+        if (msg) {
+            vino.soundPlayVolume("SE_WAVE_OK_SUB", 30);
+            tvii.alert(msg);
+        }
+    });
+
     //---------------Tab functionality, Popstate functionality-----------------------
 
     function initLiveTab() {
@@ -5894,6 +6140,7 @@ function initVinoHome() {
                 window.setListenerToProgram();
                 setupProgramTimer();
                 setContainerPagination();
+                setupChannelFilter();
                 vino.loading_setIconAppear(false);
 
                 setTimeout(function () {

@@ -60,6 +60,10 @@ tvii.locFile = {
     "vino.setup.help.favorite_channel": "Sélectionnez vos chaînes préférées, puisque\nles recommandations pour les programmes à venir\nseront faites en tenant compte de ces informations. \n\nVous pourrez modifier vos chaînes favorites après la configuration initiale.",
     "vino.setup.help.set_socials": "Vous pouvez lier vos réseaux sociaux afin que vos commentaires sur les émissions en direct, films et acteurs y soient aussi envoyés. Actuellement, seul Bluesky est pris en charge, et il n'est pas nécessaire de se connecter pour utiliser Nintendo TVii. \n\nVous pourrez modifier ces paramètres après la configuration initiale.",
     "vino.home.header.live": "En direct",
+    "vino.home.filter.all": "Tous",
+    "vino.home.filter.dt": "Terrestre",
+    "vino.home.filter.bs": "BS",
+    "vino.home.filter.cs": "CS",
     "vino.home.header.guide": "Guide",
     "vino.home.guide.no_data": "Aucune donnée de programme disponible pour cette plage horaire.",
     "vino.home.header.rec": "Recommandé",
@@ -140,6 +144,8 @@ tvii.locFile = {
     "vino.home.olv.crosspost.post.input_required": 'Veuillez écrire un message.',
 
     "vino.home.olv.crosspost.post.memo_required": 'Veuillez dessiner quelque chose en premier.',
+
+    "vino.home.olv.help.until": "En direct jusqu'à %s",
 
     "vino.home.olv.crosspost.post.time.less_than_minute_ago": "Il y a moins d'une minute",
     "vino.home.olv.crosspost.post.time.minute_ago": 'Il y a une minute',

@@ -142,12 +142,31 @@ button {
     background: url(/img/bg_bar_purple.png) repeat-x;
 }
 
+.header.miiverse>.help {
+    position: absolute;
+    top: 7px;
+    right: 12px;
+    width: 40px;
+    height: 40px;
+    z-index: 10;
+    pointer-events: all;
+    background: url(/img/bg_help.png) center center no-repeat;
+    -webkit-background-size: 40px 40px;
+    background-size: 40px 40px;
+    border-radius: 20px;
+    opacity: 0.9;
+}
+
+.header.miiverse>.help:active {
+    opacity: 1;
+}
+
 .return-top {}
 
 .favorite {}
 
 .header.pr-details>p,
-.header.miiverse>span {
+.header.miiverse>.olv-title {
     white-space: nowrap;
     color: #fff;
     text-shadow: 0px 2px 1px rgba(0, 0, 0, 0.40);
@@ -181,8 +200,31 @@ button {
     }
 }
 
-.header.miiverse>span {
-    width: 760px;
+.header.miiverse>.olv-title {
+    width: 530px;
+}
+
+.header.miiverse>.olv-channel {
+    position: absolute;
+    top: 4px;
+    left: 80px;
+    color: rgba(255, 255, 255, 0.85);
+    font-size: 13px;
+    white-space: nowrap;
+    text-shadow: 0px 1px 1px rgba(0, 0, 0, 0.35);
+}
+
+.header.miiverse>.olv-onair {
+    position: absolute;
+    top: 3px;
+    right: 80px;
+    background: rgba(255, 50, 50, 0.85);
+    color: #fff;
+    font-size: 12px;
+    padding: 1px 8px;
+    border-radius: 3px;
+    white-space: nowrap;
+    text-shadow: none;
 }
 
 .header .exit,
@@ -314,6 +356,39 @@ button {
 .program-list .content {
     overflow: hidden;
     height: 370px;
+}
+
+.channel-filter {
+    display: -webkit-box;
+    -webkit-box-pack: center;
+    -webkit-box-align: center;
+    text-align: center;
+    padding: 4px 0 2px;
+    background: rgba(255, 255, 255, 0.35);
+    border-bottom: 1px solid #d0d0d0;
+}
+
+.channel-filter .chf-btn {
+    display: inline-block;
+    padding: 3px 16px;
+    margin: 0 4px;
+    font-size: 14px;
+    color: #555;
+    background: rgba(255, 255, 255, 0.7);
+    border: 1px solid #bbb;
+    border-radius: 4px;
+    text-decoration: none;
+    -webkit-transition: background 0.15s, color 0.15s;
+}
+
+.channel-filter .chf-btn.active {
+    background: #4a90d9;
+    color: #fff;
+    border-color: #3a7ac2;
+}
+
+.channel-filter .chf-btn:active {
+    opacity: 0.8;
 }
 
 .program-list .content .pagi-menu {
@@ -1766,6 +1841,57 @@ button {
     margin-bottom: -7px;
     width: 600px;
     height: auto;
+    -webkit-animation: postSlideIn 0.3s ease-out;
+    animation: postSlideIn 0.3s ease-out;
+}
+
+.miiverse-modal .post.post-enter {
+    -webkit-animation: postSlideInNew 0.4s ease-out;
+    animation: postSlideInNew 0.4s ease-out;
+}
+
+@-webkit-keyframes postSlideIn {
+    0% {
+        opacity: 0;
+        -webkit-transform: translateY(15px);
+    }
+    100% {
+        opacity: 1;
+        -webkit-transform: translateY(0);
+    }
+}
+
+@keyframes postSlideIn {
+    0% {
+        opacity: 0;
+        transform: translateY(15px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@-webkit-keyframes postSlideInNew {
+    0% {
+        opacity: 0;
+        -webkit-transform: translateY(-20px);
+    }
+    100% {
+        opacity: 1;
+        -webkit-transform: translateY(0);
+    }
+}
+
+@keyframes postSlideInNew {
+    0% {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 .miiverse-modal .post .post-content {
