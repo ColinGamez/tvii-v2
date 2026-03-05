@@ -42,8 +42,8 @@ router.post(
                 .first();
 
             if (existing) {
-                console.warn(
-                    `Account already exists for: ${token.pid} set up from Serial Number ${token.serial_number}`
+                logger.warn(
+                    "Account already exists for: %s set up from Serial Number %s", token.pid, token.serial_number
                 );
                 return res.status(500).json({
                     status: "error",
@@ -90,8 +90,8 @@ router.post(
                     { signal: AbortSignal.timeout(10_000) }
                 );
                 if (!checkPID.ok) {
-                    console.warn(
-                        `Mii Unsecure Pretendo fetching error for : ${token.pid} ${token.serial_number}`
+                    logger.warn(
+                        "Mii Unsecure Pretendo fetching error for: %s %s", token.pid, token.serial_number
                     );
                     return res.status(500).json({
                         status: "error_not_pretendo",
@@ -140,8 +140,8 @@ router.post(
                 );
 
                 if (!bskySession) {
-                    console.warn(
-                        `Error fetching bsky login for: ${token.pid} ${token.serial_number} ${bskySession}`
+                    logger.warn(
+                        "Error fetching bsky login for: %s %s", token.pid, token.serial_number
                     );
                 }
 
@@ -185,8 +185,8 @@ router.post(
                 utc_offset = ipInfo.timezone.offset;
             } else {
                 // Fallback: derive offset from country code
-                console.warn(
-                    `UTC offset fetching error, using country fallback : ${token.pid} ${token.serial_number}`
+                logger.warn(
+                    "UTC offset fetching error, using country fallback: %s %s", token.pid, token.serial_number
                 );
                 if (countryCode === "JP") {
                     utc_offset = 32400; // JST +09:00
@@ -201,117 +201,78 @@ router.post(
 
             const userEnv = env.VINO_JP_CONFIG_ENV;
 
-            const createdAccount = await db("account").insert({
-                pid: principalId,
-                country: countryCode,
-                mii_data,
-                mii_name,
-                mii_bday,
-                nnid,
-                utc_offset,
-                serial_number: serialNumber,
-                access_key: accessKey,
-                last_data_update: new Date().toISOString().slice(0, 19).replace("T", " "),
-                env: userEnv,
-            });
-
-            if (!createdAccount) {
-                console.warn(
-                    `Failed to insert account to DB : ${token.pid} ${token.serial_number}`
-                );
-                res.status(500).json({
-                    status: "error",
-                    error: "Account creation failed, could not insert to the DB",
-                });
-                return;
-            }
-
-            console.log("Insert successful. New user:", token.pid);
-
-            const createdSettings = await db("settings").insert({
-                pid: token.pid,
-                tv_provider_id: tvProviderIdChosen,
-                tv_provider_tz: tvProviderTzChosen,
-                bsky_auth_session_json: hashedBskySess,
-                bsky_password_hashed: hashedBskyPass,
-                bsky_username: bskyUsername,
-            });
-
-            if (
-                !Array.isArray(createdSettings) ||
-                createdSettings.length === 0
-            ) {
-                console.warn(
-                    `Failed to submit settings information on database : ${token.pid} ${token.serial_number}`
-                );
-                res.status(500).json({
-                    status: "error",
-                    error: "Account creation failed, account created but settings could not be inserted.",
-                });
-                return;
-            }
-
-            let raw = data.favorite_channels;
-            let favorites;
-
-            try {
-                favorites = JSON.parse(raw);
-            } catch (e) {
-                return res.status(400).json({
-                    status: "error",
-                    error: "Invalid favorite_channels JSON"
-                });
-            }
-
-            if (Array.isArray(favorites) && favorites.length !== 0) {
-                var now = new Date().toISOString();
-
-                // remove duplicates inside request itself
-                favorites = [...new Set(favorites)];
-
+            // Parse favorites before the transaction so we can bail early on bad JSON
+            let favorites: any[] = [];
+            if (data.favorite_channels) {
                 try {
-                    // get all existing favorites for this user
-                    var existingRows = await db("favorite_channels")
-                        .where("pid", token.pid)
-                        .select("channel_id");
-
-                    // convert to fast lookup set
-                    var existingSet = new Set(
-                        existingRows.map(function (r) { return r.channel_id; })
-                    );
-
-                    // filter only new ones
-                    var rows = [];
-                    for (var i = 0; i < favorites.length; i++) {
-                        if (!existingSet.has(favorites[i])) {
-                            rows.push({
-                                create_time: now,
-                                pid: token.pid,
-                                channel_id: favorites[i]
-                            });
-                        }
-                    }
-
-                    // insert only if something new exists
-                    if (rows.length > 0) {
-                        await db("favorite_channels").insert(rows);
-                    }
-
-                } catch (err) {
-                    console.error(err);
-                    return res.status(500).json({
+                    favorites = JSON.parse(data.favorite_channels);
+                } catch (e) {
+                    return res.status(400).json({
                         status: "error",
-                        error: "DB insert failed"
+                        error: "Invalid favorite_channels JSON"
                     });
                 }
             }
+
+            // Atomic transaction: account + settings + favorite_channels
+            await db.transaction(async (trx) => {
+                await trx("account").insert({
+                    pid: principalId,
+                    country: countryCode,
+                    mii_data,
+                    mii_name,
+                    mii_bday,
+                    nnid,
+                    utc_offset,
+                    serial_number: serialNumber,
+                    access_key: accessKey,
+                    last_data_update: new Date().toISOString().slice(0, 19).replace("T", " "),
+                    env: userEnv,
+                });
+
+                await trx("settings").insert({
+                    pid: token.pid,
+                    tv_provider_id: tvProviderIdChosen,
+                    tv_provider_tz: tvProviderTzChosen,
+                    bsky_auth_session_json: hashedBskySess,
+                    bsky_password_hashed: hashedBskyPass,
+                    bsky_username: bskyUsername,
+                });
+
+                if (Array.isArray(favorites) && favorites.length > 0) {
+                    const now = new Date().toISOString();
+                    const uniqueFavs = [...new Set(favorites)];
+
+                    const existingRows = await trx("favorite_channels")
+                        .where("pid", token.pid)
+                        .select("channel_id");
+
+                    const existingSet = new Set(
+                        existingRows.map((r: any) => r.channel_id)
+                    );
+
+                    const rows = uniqueFavs
+                        .filter((ch) => !existingSet.has(ch))
+                        .map((ch) => ({
+                            create_time: now,
+                            pid: token.pid,
+                            channel_id: ch,
+                        }));
+
+                    if (rows.length > 0) {
+                        await trx("favorite_channels").insert(rows);
+                    }
+                }
+            });
+
+            logger.success("Account created for pid %s", token.pid);
 
             res.status(200).json({
                 status: "verified",
                 pid: token.pid,
             });
         } catch (error) {
-            console.error("/createAccount error:", error);
+            logger.error("/createAccount error: %s", error);
             res.status(500).json({
                 status: "error",
                 error: "Internal server error",
@@ -338,7 +299,7 @@ router.get("/reminders", async (req: Request, res: Response): Promise<any> => {
             reminders: rows,
         });
     } catch (error) {
-        console.error("/reminders error:", error);
+        logger.error("/reminders error: %s", error);
         res.status(500).json({
             status: "error",
             error: "Internal server error.",
@@ -366,7 +327,7 @@ router.get("/reminders/check", async (req: Request, res: Response): Promise<any>
             reminder: row ?? null,
         });
     } catch (error) {
-        console.error("/reminders/check error:", error);
+        logger.error("/reminders/check error: %s", error);
         res.status(500).json({ status: "error", error: "Internal server error." });
     }
 });
@@ -410,7 +371,7 @@ router.post("/reminders", async (req: Request, res: Response): Promise<any> => {
 
         res.status(200).json({ status: "success" });
     } catch (error) {
-        console.error("/reminders POST error:", error);
+        logger.error("/reminders POST error: %s", error);
         res.status(500).json({ status: "error", error: "Internal server error." });
     }
 });
@@ -431,7 +392,7 @@ router.delete("/reminders", async (req: Request, res: Response): Promise<any> =>
         await db("reminders").where({ pid, listing_id: listingId }).delete();
         res.status(200).json({ status: "success" });
     } catch (error) {
-        console.error("/reminders DELETE error:", error);
+        logger.error("/reminders DELETE error: %s", error);
         res.status(500).json({ status: "error", error: "Internal server error." });
     }
 });

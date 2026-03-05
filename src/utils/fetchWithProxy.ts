@@ -1,3 +1,5 @@
+import { logger } from "./logger.ts";
+
 const userAgentTemplates: string[] = [
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/{CHROME_VERSION} Safari/537.36",
     "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_{RAND}) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.{RAND} Safari/605.1.15",
@@ -57,7 +59,7 @@ export async function fetchWithProxy(url: string, headers: Record<string, string
 
         return response;
     } catch (error: any) {
-        console.error(`⚠️ fetchWithProxy failed: ${error.message}`);
+        logger.error("⚠️ fetchWithProxy failed: %s", error.message);
         throw error; // do not retry
     }
 }
@@ -104,7 +106,7 @@ export async function postWithProxy(url: string, body: string | Record<string, a
 
         return response;
     } catch (error: any) {
-        console.error(`⚠️ postWithProxy failed: ${error.message}`);
+        logger.error("⚠️ postWithProxy failed: %s", error.message);
         throw error; // do not retry
     }
 }

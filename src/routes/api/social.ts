@@ -127,7 +127,7 @@ router.post(
                 displayName: info.data.displayName,
             });
         } catch (error) {
-            console.error("/BSLoginCheck error:", error);
+            logger.error("/BSLoginCheck error: %s", error);
             res.status(500).json({ error: "Internal server error." });
         }
     }
@@ -180,7 +180,7 @@ router.get(
                     }
 
                 } catch (err) {
-                    console.error("Mii fetch error:", err);
+                    logger.error("Mii fetch error: %s", err);
                 }
 
                 try {
@@ -208,7 +208,7 @@ router.get(
                         60 * 60 // 1 hour
                     );
                 } catch (err) {
-                    console.error("Juxt scrape error:", err);
+                    logger.error("Juxt scrape error: %s", err);
                 }
             }
 
@@ -231,7 +231,7 @@ router.get(
             });
 
         } catch (error) {
-            console.error("/getUserData error:", error);
+            logger.error("/getUserData error: %s", error);
             return res.status(500).json({ error: "Internal server error." });
         }
     }
@@ -283,8 +283,8 @@ router.post(
                     resumedSession =
                         await bskyAgent.agent.resumeSession(session);
                 } catch (resumeErr) {
-                    console.log(
-                        "could not resume bsky session (will try to create new session):",
+                    logger.warn(
+                        "could not resume bsky session (will try to create new session): %s",
                         resumeErr
                     );
 
@@ -310,8 +310,8 @@ router.post(
                                 ),
                             });
                     } catch (loginErr) {
-                        console.log(
-                            "could not login with bsky stored credentials (changed pass/no app password):",
+                        logger.warn(
+                            "could not login with bsky stored credentials (changed pass/no app password): %s",
                             loginErr
                         );
 
@@ -362,7 +362,7 @@ router.post(
                     );
                     paintingBuffer = Buffer.from(base64Image, "base64");
 
-                    memoCdnKey = `${token.pid}_${Date.now()}_memo.png`;
+                    memoCdnKey = `${token.pid}_${Date.now()}_${crypto.randomUUID().slice(0, 8)}_memo.png`;
                     const bucketName = env.VINO_JP_MINIO_BUCKET;
 
                     const uploadParams = {
@@ -374,12 +374,14 @@ router.post(
                     };
 
                     await s3.send(new PutObjectCommand(uploadParams));
-                    console.log(
-                        `✅ PostAlt Memo PNG Uploaded ${memoCdnKey} to ${bucketName}`
+                    logger.success(
+                        "PostAlt Memo PNG Uploaded %s to %s",
+                        memoCdnKey,
+                        bucketName
                     );
                 } catch (err) {
-                    console.error(
-                        "❌ PostAlt Error uploading PNG (memo):",
+                    logger.error(
+                        "PostAlt Error uploading PNG (memo): %s",
                         err
                     );
                     return res.status(500).json({
@@ -397,7 +399,7 @@ router.post(
                     );
                     screenshotBuffer = Buffer.from(base64Image, "base64");
 
-                    screenshotCdnKey = `${token.pid}_${Date.now()}_ss.png`;
+                    screenshotCdnKey = `${token.pid}_${Date.now()}_${crypto.randomUUID().slice(0, 8)}_ss.png`;
                     const bucketName = env.VINO_JP_MINIO_BUCKET;
 
                     const uploadParams = {
@@ -409,12 +411,14 @@ router.post(
                     };
 
                     await s3.send(new PutObjectCommand(uploadParams));
-                    console.log(
-                        `✅ PostAlt Screenshot PNG Uploaded ${screenshotCdnKey} to ${bucketName}`
+                    logger.success(
+                        "PostAlt Screenshot PNG Uploaded %s to %s",
+                        screenshotCdnKey,
+                        bucketName
                     );
                 } catch (err) {
-                    console.error(
-                        "❌ PostAlt Error uploading PNG (screenshot):",
+                    logger.error(
+                        "PostAlt Error uploading PNG (screenshot): %s",
                         err
                     );
                     return res.status(500).json({
@@ -515,7 +519,7 @@ router.post(
                         signal: AbortSignal.timeout(5_000),
                     });
                 } catch (err) {
-                    console.error("❌ Failed to send Discord webhook:", err);
+                    logger.error("Failed to send Discord webhook: %s", err);
                 }
 
                 // Social posting logic
@@ -531,9 +535,9 @@ router.post(
                     if (bskyAgent && resumedSession) {
                         try {
                             const bskyResult = await bskyAgent.sendPost(bText);
-                            console.log("bsky text upload! ", bskyResult);
+                            logger.success("bsky text upload: %s", bskyResult);
                         } catch (e) {
-                            console.log("bsky text upload error: ", e);
+                            logger.error("bsky text upload error: %s", e);
                         }
                     }
                 } else if (hasBody && hasScreenshot && screenshotBuffer) {
@@ -552,9 +556,9 @@ router.post(
                                     postForm.topic_tag,
                                     screenshotBuffer
                                 );
-                            console.log("bsky doodle upload! ", bskyResult);
+                            logger.success("bsky doodle upload: %s", bskyResult);
                         } catch (e) {
-                            console.log("bsky doodle upload error: ", e);
+                            logger.error("bsky doodle upload error: %s", e);
                         }
                     }
                 } else if (!hasBody && hasPainting && paintingBuffer) {
@@ -574,9 +578,9 @@ router.post(
                                     postForm.topic_tag,
                                     paintingBuffer
                                 );
-                            console.log("bsky memo upload! ", bskyResult);
+                            logger.success("bsky memo upload: %s", bskyResult);
                         } catch (e) {
-                            console.log("bsky memo upload error: ", e);
+                            logger.error("bsky memo upload error: %s", e);
                         }
                     }
                 }
@@ -607,7 +611,7 @@ router.post(
                                         `\\title_id\\${titleIdHex}`
                                     );
                                     olvParamPack = Buffer.from(fixedDecoded).toString("base64");
-                                    console.log(`[Roseverse] title_id: ${olvTitleId} -> hex ${titleIdHex}`);
+                                    logger.info("[Roseverse] title_id: %s -> hex %s", olvTitleId, titleIdHex);
                                 }
                             } catch (_) {}
                         }
@@ -671,10 +675,10 @@ router.post(
                         logger.info("[Roseverse] POST -> %d (title_id=%s)", olvResp.status, olvTitleId);
 
                         if (olvResp.status !== 200) {
-                            console.log(`[Roseverse] Error response: ${olvBody}`);
+                            logger.warn("[Roseverse] Error response: %s", olvBody);
                         }
                     } catch (err) {
-                        console.error("[Roseverse] Crosspost error:", err);
+                        logger.error("[Roseverse] Crosspost error: %s", err);
                     }
                 }
                 // ─── End Roseverse Crosspost ────────────────────────────
@@ -684,14 +688,14 @@ router.post(
                     post_id: postIdForLink,
                 });
             } else {
-                console.error("Post Insert failed");
+                logger.error("Post Insert failed");
                 res.status(500).json({
                     status: "error",
                     error: "Post did not insert properly to DB.",
                 });
             }
         } catch (error) {
-            console.error("/postsAlt error:", error);
+            logger.error("/postsAlt error: %s", error);
             res.status(500).json({
                 status: "error",
                 error: "Internal server error.",
@@ -796,7 +800,7 @@ router.get("/postsAlt", async (req: Request, res: Response): Promise<any> => {
 
         return res.status(200).json(output);
     } catch (error) {
-        console.error("/postsAlt GET error:", error);
+        logger.error("/postsAlt GET error: %s", error);
         return res.status(500).json({
             status: "error",
             error: "Internal server error.",
@@ -848,7 +852,7 @@ router.post(
 
             res.status(200).json({ status: "success" });
         } catch (e) {
-            console.error("error yeah-ing post");
+            logger.error("error yeah-ing post");
             res.status(500).json({ status: "error" });
         }
     }
@@ -894,7 +898,7 @@ router.delete(
 
             res.status(200).json({ status: "success" });
         } catch (e) {
-            console.error("error un-yeah-ing post");
+            logger.error("error un-yeah-ing post");
             res.status(500).json({ status: "error" });
         }
     }

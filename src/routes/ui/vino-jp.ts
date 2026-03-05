@@ -165,12 +165,12 @@ router.get("/index.html", async (req: Request, res: Response): Promise<any> => {
                     last_data_update: mysqlNow(),
                 });
 
-                console.log(`PNID Data + UTC updated for PID ${token.pid}`);
+                logger.info("PNID Data + UTC updated for PID %s", token.pid);
             } else {
                 updateValues.last_data_update = mysqlNow();
             }
         } catch (err) {
-            console.warn("Mii/IP update failed:", err);
+            logger.warn("Mii/IP update failed: %s", err);
             updateValues.last_data_update = mysqlNow();
         }
     }

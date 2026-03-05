@@ -2,6 +2,7 @@ import express, { type Request, type Response, type Router } from "express";
 import sharp from "sharp";
 import NodeCache from "node-cache";
 import { env } from "../env";
+import { logger } from "../utils/logger.ts";
 
 const router: Router = express.Router();
 
@@ -83,7 +84,7 @@ router.get("/cdn/:imageId", async (req: Request, res: Response): Promise<any> =>
         res.set("Content-Type", "image/png");
         return res.status(200).send(buffer);
     } catch (err) {
-        console.error("Image proxy error:", err);
+        logger.error("Image proxy error: %s", err);
         return res.status(500).json({ error: "Internal server error" });
     }
 });
@@ -175,7 +176,7 @@ router.get(/^\/cdn\/tvp\/(.+)$/, async (req: Request, res: Response) => {
         res.set("Content-Type", "image/png");
         return res.status(200).send(buffer);
     } catch (err) {
-        console.error("TVPassport image proxy error:", err);
+        logger.error("TVPassport image proxy error: %s", err);
         return res.status(500).json({ error: "Internal server error" });
     }
 });

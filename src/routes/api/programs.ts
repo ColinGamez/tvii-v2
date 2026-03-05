@@ -1,5 +1,6 @@
 import express, { type Request, type Response, type Router } from "express";
 import { env } from "../../env";
+import { logger } from "../../utils/logger.ts";
 import { z } from "zod";
 
 const router: Router = express.Router();
@@ -62,7 +63,7 @@ router.get("/:programId", async (req: Request, res: Response) => {
         });
         return;
     } catch (e: unknown) {
-        console.error(`Error in /api/v1/programs/${validatedProgramId}: ${e}`);
+        logger.error("Error in /api/v1/programs/%s: %s", validatedProgramId, e);
 
         res.status(500).json({
             endpoint: "/api/v1/programs/:programId",

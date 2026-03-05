@@ -303,7 +303,7 @@ router.get("/countries/:country/:zipcode", async (req: Request, res: Response) =
         return res.status(200).json(result);
 
     } catch (err) {
-        console.error(`Error in ${endpoint}:`, err);
+        logger.error("Error in %s: %s", endpoint, err);
         return res.status(500).json({
             zipcode,
             hasError: 1,
@@ -424,7 +424,7 @@ async function getChannelListByProviderID(
         return filterBrokenChannels(channels);
 
     } catch (err) {
-        console.error(`Error in ${key}:`, err);
+        logger.error("Error in %s: %s", key, err);
         return null;
     }
 }
@@ -638,7 +638,7 @@ async function getChannelScheduleByPath(
 
         return programs;
     } catch (err) {
-        console.error(`Error in ${key}:`, err);
+        logger.error("Error in %s: %s", key, err);
         return null;
     }
 }
@@ -766,7 +766,7 @@ async function getShowDetails
                 });
 
             } catch (err) {
-                console.error("Series cast fetch failed, fallback to page cast:", err);
+                logger.error("Series cast fetch failed, fallback to page cast: %s", err);
             }
         } else {
             //Then we are requesting movie details, movies seem to have cast members built in
@@ -793,7 +793,7 @@ async function getShowDetails
 
         return details;
     } catch (err) {
-        console.error(`Error in ${key}:`, err);
+        logger.error("Error in %s: %s", key, err);
         return null;
     }
 }
@@ -1004,7 +1004,7 @@ router.get("/lineup/:country/:provider_id", async (req: Request, res: Response) 
             data: lineup
         });
     } catch (err: any) {
-        console.error(err);
+        logger.error("Lineup error: %s", err);
         return res.status(500).json({
             provider_id,
             hasError: 1,
@@ -1202,7 +1202,7 @@ router.get("/info", async (req: Request, res: Response) => {
         });
 
     } catch (err: any) {
-        console.error(err);
+        logger.error("Provider info error: %s", err);
         return res.status(500).json({
             hasError: 1,
             error: { code: 500, message: "Internal Server Error" }

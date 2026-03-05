@@ -1,6 +1,6 @@
 import express, { type Request, type Response, type Router } from "express";
-
 import NodeCache from "node-cache";
+import { logger } from "../../utils/logger.ts";
 
 const router: Router = express.Router();
 
@@ -46,7 +46,7 @@ router.get("/", async (req: Request, res: Response) => {
         res.send(buffer);
 
     } catch (err) {
-        console.error(err);
+        logger.error("Mii image fetch error: %s", err);
         res.status(500).send("Failed to fetch image");
     }
 });

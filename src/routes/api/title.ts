@@ -6,6 +6,7 @@ import { redis } from "../../utils/db.ts";
 import path from "path";
 import { fileURLToPath } from "url";
 import { env } from "../../env.ts";
+import { logger } from "../../utils/logger.ts";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -181,7 +182,7 @@ router.get("/", async (req: Request, res: Response) => {
         res.send(buffer);
 
     } catch (err) {
-        console.error(err);
+        logger.error("Title image generation error: %s", err);
         res.status(500).send("error");
     }
 });

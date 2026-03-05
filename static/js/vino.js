@@ -2529,19 +2529,7 @@ function initVinoHome() {
             programEl.querySelector(".info .tag").textContent = "";
 
             var genreEl = programEl.querySelector(".genre");
-            genreEl.classList.remove("talk");
-            genreEl.classList.remove("news");
-            genreEl.classList.remove("movies");
-            genreEl.classList.remove("sports");
-            genreEl.classList.remove("family");
-            genreEl.classList.remove("series");
-            genreEl.classList.remove("comedy");
-            genreEl.classList.remove("reality");
-            genreEl.classList.remove("documentary");
-            genreEl.classList.remove("lifestyle");
-            genreEl.classList.remove("music");
-            genreEl.classList.remove("special");
-            genreEl.classList.remove("adult_animated");
+            genreEl.classList.remove("talk", "news", "movies", "sports", "family", "series", "comedy", "reality", "documentary", "lifestyle", "music", "special", "adult_animated");
 
             genreEl.querySelector("span").innerHTML = "";
 
@@ -2798,12 +2786,10 @@ function initVinoHome() {
 
     function abortReqsXhr() {
         if (progPrevReq) {
-            console.warn("abort prog prev")
             progPrevReq.abort();
             progPrevReq = null;
         }
         if (postPrevReq) {
-            console.warn("abort post prev")
             postPrevReq.abort();
             postPrevReq = null;
         }
@@ -2857,7 +2843,6 @@ function initVinoHome() {
         });
 
         if (progPrevReq) {
-            console.warn("abort prog prev")
             progPrevReq.abort();
             progPrevReq = null;
         }
@@ -3056,7 +3041,6 @@ function initVinoHome() {
 
     function requestMiiversePostProgPreview(programId) {
         if (postPrevReq) {
-            console.warn("abort post prev")
             postPrevReq.abort();
         }
 
@@ -3232,19 +3216,7 @@ function initVinoHome() {
             }
 
             var genreEl = $a.find(".genre");
-            genreEl.removeClass("talk");
-            genreEl.removeClass("news");
-            genreEl.removeClass("movies");
-            genreEl.removeClass("sports");
-            genreEl.removeClass("family");
-            genreEl.removeClass("series");
-            genreEl.removeClass("comedy");
-            genreEl.removeClass("reality");
-            genreEl.removeClass("documentary");
-            genreEl.removeClass("lifestyle");
-            genreEl.removeClass("music");
-            genreEl.removeClass("special");
-            genreEl.removeClass("adult_animated");
+            genreEl.removeClass("talk news movies sports family series comedy reality documentary lifestyle music special adult_animated");
 
             var genreIDText = tvii.getProgramGenre(program.genre, program.rating);
 
@@ -3917,16 +3889,17 @@ function initVinoHome() {
                     startTime: startTime
                 });
 
-                var xhr = new XMLHttpRequest();
-                xhr.open("POST", "/api/v1/act/reminders", true);
-                xhr.setRequestHeader("Content-Type", "application/json");
-                xhr.onload = function () {
-                    if (xhr.status === 200) {
+                tvii.sendXHRNoTimeout(
+                    "POST",
+                    "/api/v1/act/reminders",
+                    function () {
                         $reminder.addClass("active");
                         $reminder.find("span").text(tvii.getLoc("vino.home.program.button.remove_reminder"));
-                    }
-                };
-                xhr.send(body);
+                    },
+                    function () { /* ignore error */ },
+                    ["Content-Type: application/json"],
+                    body
+                );
             }
         });
 
@@ -4405,11 +4378,12 @@ function initVinoHome() {
         }
 
         // ===== fallback formatting =====
-        var m = date.getMonth() + 1;
-        var d = date.getDate();
-        var y = date.getFullYear();
-        var hh = date.getHours();
-        var mm = date.getMinutes();
+        // Use UTC methods because offset is already baked into the Date object
+        var m = date.getUTCMonth() + 1;
+        var d = date.getUTCDate();
+        var y = date.getUTCFullYear();
+        var hh = date.getUTCHours();
+        var mm = date.getUTCMinutes();
 
         if (m < 10) m = "0" + m;
         if (d < 10) d = "0" + d;
@@ -5874,12 +5848,16 @@ function initVinoHome() {
         // Guide nav arrows (left = earlier, right = later)
         $(".guide-navi .left").off("click").on("click", function () {
             guideWindowOffset -= 3;
+            // Clamp: don't go more than 24h in the past
+            if (guideWindowOffset < -24) guideWindowOffset = -24;
             vino.soundPlayVolume("SE_PROGRAM_SLIDE_SPEED", 30);
             vino.loading_setIconAppear(true);
             loadGuideGrid();
         });
         $(".guide-navi .right").off("click").on("click", function () {
             guideWindowOffset += 3;
+            // Clamp: don't go more than 8 days (~192h) in the future
+            if (guideWindowOffset > 192) guideWindowOffset = 192;
             vino.soundPlayVolume("SE_PROGRAM_SLIDE_SPEED", 30);
             vino.loading_setIconAppear(true);
             loadGuideGrid();

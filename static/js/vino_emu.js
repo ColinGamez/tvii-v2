@@ -711,11 +711,11 @@ if (typeof vino === "undefined") {
         },
         suggest_getString: function () { return "" },
         pc_checkPIN: function () {
-            console.log("PIN is true, perentl conrol allowed");
+            console.log("PIN is true, parental control allowed");
             return true;
         },
         pc_runPINInput: function () {
-            console.log("PIN is correcto, perentl conrol allowed");
+            console.log("PIN is correct, parental control allowed");
             return 1;
         },
         pc_isControlled: function () {
