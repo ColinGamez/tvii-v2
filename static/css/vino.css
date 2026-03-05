@@ -118,6 +118,7 @@ button {
     height: 66px;
     background: url(/img/bannerbg1.png) repeat-x;
     /*background: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAA2SURBVChTY/z//78kAwT8ZWRkfAVlYwAmKE0QgBT+heJ/IAH6AUYojQKweZAkz2ADNPcgAwMAOZkP+x8ViUwAAAAASUVORK5CYII=), -webkit-gradient(linear, left top, left bottom, from(#fe846b), color-stop(0.94, #f01e0b), color-stop(0.94, #ffffff), to(#e9e9e9));
+    -webkit-box-shadow: 0px 1px 2px 1px rgba(0, 0, 0, 0.20);*/
     box-shadow: 0px 1px 2px 1px rgba(0, 0, 0, 0.20);*/
 }
 
@@ -289,6 +290,7 @@ button {
 
 .header .tabs>a {
     position: relative;
+    -webkit-box-sizing: border-box;
     box-sizing: border-box;
     display: -webkit-box;
     -webkit-box-pack: center;
@@ -357,8 +359,8 @@ button {
     right: 0;
     padding-left: 5px;
     padding-right: 60px;
-    box-sizing: border-box;
     -webkit-box-sizing: border-box;
+    box-sizing: border-box;
     overflow: hidden;
 }
 
@@ -546,6 +548,7 @@ button {
 .program-list .searchbar {
     display: inline-block;
     padding-left: 50px;
+    -webkit-box-shadow: 0px 1px 2px rgba(0, 0, 0, 0.3);
     box-shadow: 0px 1px 2px rgba(0, 0, 0, 0.3);
 }
 
@@ -717,8 +720,8 @@ button {
     width: 394px;
     height: 130px;
     padding: 2px;
-    box-sizing: border-box;
     -webkit-box-sizing: border-box;
+    box-sizing: border-box;
     background-position: -424px -204px;
 }
 
@@ -731,8 +734,8 @@ button {
     height: 174px;
     background-position: -424px -10px;
     padding: 2px;
-    box-sizing: border-box;
     -webkit-box-sizing: border-box;
+    box-sizing: border-box;
     margin-top: 5px;
 }
 
@@ -865,8 +868,8 @@ button {
     bottom: 0;
     width: 157px;
     height: 51px;
-    box-sizing: border-box;
     -webkit-box-sizing: border-box;
+    box-sizing: border-box;
     background: url(/img/yeah-sep.png) 0 0 repeat-y;
     position: absolute;
 }
@@ -931,8 +934,8 @@ button {
 
 .setup-modal {
     min-height: 480px;
-    box-sizing: border-box;
     -webkit-box-sizing: border-box;
+    box-sizing: border-box;
     width: 854px;
     position: relative;
     padding: 30px 60px;
@@ -943,11 +946,12 @@ button {
     width: 100%;
     min-height: 420px;
     background: url(/img/dialog-bg.png) 0 0 no-repeat #f9f9f9;
-    box-sizing: border-box;
     -webkit-box-sizing: border-box;
+    box-sizing: border-box;
     -webkit-border-radius: 10px;
     border-radius: 10px;
     text-align: center;
+    -webkit-box-shadow: 0px 0px 4px 1px rgba(0, 0, 0, 0.3);
     box-shadow: 0px 0px 4px 1px rgba(0, 0, 0, 0.3);
 }
 
@@ -983,8 +987,10 @@ button {
     width: 128px;
     -webkit-border-radius: 10px;
     border-radius: 10px;
+    -webkit-box-shadow: 0px 0px 0px 3px #c7c7c7;
     box-shadow: 0px 0px 0px 3px #c7c7c7;
     margin: auto;
+    -webkit-box-sizing: border-box;
     box-sizing: border-box;
     margin-bottom: 40px;
     height: 128px;
@@ -1007,6 +1013,7 @@ button {
     position: relative;
     display: block;
     height: 94px;
+    -webkit-box-sizing: border-box;
     box-sizing: border-box;
     border-bottom: 3px dashed #d3d3d3;
     margin: 0px 10px;
@@ -1119,11 +1126,13 @@ button {
     background:
         url(/img/button-bg.png) 0 bottom repeat-x,
         #fff;
+    -webkit-box-sizing: border-box;
     box-sizing: border-box;
     color: #323232;
     text-shadow: 0px 2px #fff;
     padding: 4px;
     margin: 0 14px;
+    -webkit-box-shadow: 0px 0px 4px 1px rgba(0, 0, 0, 0.35);
     box-shadow: 0px 0px 4px 1px rgba(0, 0, 0, 0.35);
     -webkit-border-radius: 8px;
     border-radius: 8px;
@@ -1132,6 +1141,7 @@ button {
 .dialog-buttons>a.disabled {
     background: url(/img/button-bg-dis.png) 0 bottom repeat-x;
     color: #959595;
+    -webkit-box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.35);
     box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.35);
 }
 
@@ -1155,6 +1165,7 @@ button {
     border: 2px solid #8a8a8a;
     -webkit-border-radius: 5px;
     border-radius: 5px;
+    -webkit-box-sizing: border-box;
     box-sizing: border-box;
     font-size: 34px;
     color: #323232;
@@ -1209,6 +1220,7 @@ button {
     display: -webkit-box;
     -webkit-box-pack: center;
     border-bottom: 2px solid #9e9e9e;
+    -webkit-box-shadow: 0px 1px #fff;
     box-shadow: 0px 1px #fff;
     position: relative;
     background: url("/img/providertype-bg.png") 0 0 repeat-x;
@@ -1221,12 +1233,14 @@ button {
     height: 50px;
     position: relative;
     font-size: 23px;
+    -webkit-box-sizing: border-box;
     box-sizing: border-box;
     border-right: 2px solid #9e9e9e;
     -webkit-box-pack: center;
     display: -webkit-box;
     -webkit-box-align: center;
     -webkit-box-flex: 1;
+    -webkit-box-shadow: 1px 0px #fff;
     box-shadow: 1px 0px #fff;
     text-shadow: 0px 2px #f4f4f4;
 }
@@ -1246,6 +1260,7 @@ button {
 
 .tvproviders .providertypes>a:last-child {
     border-right: none;
+    -webkit-box-shadow: none;
     box-shadow: none;
 }
 
@@ -1258,6 +1273,7 @@ button {
     padding: 8px 10px;
     line-height: 1.4;
     font-size: 22px;
+    -webkit-box-sizing: border-box;
     box-sizing: border-box;
     color: #323232;
     border-bottom: 1px solid #ababab;
@@ -1305,8 +1321,8 @@ button {
     -webkit-box-align: center;
     -webkit-box-pack: center;
     padding-left: 70px;
-    box-sizing: border-box;
     -webkit-box-sizing: border-box;
+    box-sizing: border-box;
     color: #fff;
     text-align: left;
     line-height: 1.2;
@@ -1315,6 +1331,7 @@ button {
     -webkit-border-radius: 5px;
     border-radius: 5px;
     margin: 7px 0px;
+    -webkit-box-shadow: 0px 1px 4px 0px rgba(0, 0, 0, 0.35);
     box-shadow: 0px 1px 4px 0px rgba(0, 0, 0, 0.35);
     min-height: 55px;
     font-size: 24px;
@@ -1381,12 +1398,14 @@ button {
     width: 230px;
     color: #fff;
     height: 65px;
+    -webkit-box-sizing: border-box;
     box-sizing: border-box;
     -webkit-border-radius: 5px;
     border-radius: 5px;
     font-size: 36px;
     padding: 5px;
     text-shadow: 0px -2px rgba(0, 0, 0, 0.2);
+    -webkit-box-shadow:
     box-shadow:
         0px -2px 1px 0px #d2d2d2,
         0px 1px 1px 1px #b3b3b3;
@@ -1440,6 +1459,7 @@ button {
     border: 2px solid #afafaf;
     height: 50px;
     margin: 10px 0px;
+    -webkit-box-sizing: border-box;
     box-sizing: border-box;
     font-size: 22px;
     padding: 6px 10px;
@@ -1463,6 +1483,7 @@ button {
     background: url(/img/left-scr.png) 10px 42px no-repeat, rgba(255, 255, 255, 0.3);
     left: 0;
     top: 180px;
+    -webkit-box-shadow: 0px 2px 2px 0px rgba(0, 0, 0, 0.5);
     box-shadow: 0px 2px 2px 0px rgba(0, 0, 0, 0.5);
     z-index: 20;
 }
@@ -1476,18 +1497,21 @@ button {
     background: url(/img/right-scr.png) 20px 42px no-repeat, rgba(255, 255, 255, 0.3);
     right: 0;
     top: 180px;
+    -webkit-box-shadow: 0px 2px 2px 0px rgba(0, 0, 0, 0.5);
     box-shadow: 0px 2px 2px 0px rgba(0, 0, 0, 0.5);
     z-index: 20;
 }
 
 .program-fulldetails-page .prev-page.hover {
     background: url(/img/left-scr.png) 10px 42px no-repeat, rgba(255, 255, 255, 0);
+    -webkit-box-shadow: 0px 2px 1px 0px rgba(0, 0, 0, 0.5);
     box-shadow: 0px 2px 1px 0px rgba(0, 0, 0, 0.5);
     left: -2px;
 }
 
 .program-fulldetails-page .next-page.hover {
     background: url(/img/right-scr.png) 20px 42px no-repeat, rgba(255, 255, 255, 0);
+    -webkit-box-shadow: 0px 2px 1px 0px rgba(0, 0, 0, 0.5);
     box-shadow: 0px 2px 1px 0px rgba(0, 0, 0, 0.5);
     right: -2px;
 }
@@ -1506,8 +1530,8 @@ button {
     position: relative;
     height: 324px;
     width: 394px;
-    box-sizing: border-box;
     -webkit-box-sizing: border-box;
+    box-sizing: border-box;
     background-position: -10px -10px;
 }
 
@@ -1525,6 +1549,7 @@ button {
         url(/img/tvii-logo.png) no-repeat center center,
         #d3d3d3;
     height: 225px;
+    -webkit-box-shadow: 0px 1px 2px 1px #c1c1c1;
     box-shadow: 0px 1px 2px 1px #c1c1c1;
     margin-right: 0px;
 }
@@ -1620,8 +1645,8 @@ button {
     line-height: 1.4;
     padding-left: 14px;
     width: 390px;
-    -webkit-box-sizing: border-box;
     text-align: left;
+    -webkit-box-sizing: border-box;
     box-sizing: border-box;
     padding-right: 14px;
     font-weight: bold;
@@ -1687,6 +1712,7 @@ button {
     color: #fff;
     display: block;
     width: 250px;
+    -webkit-box-sizing: border-box;
     box-sizing: border-box;
     padding: 0 10px;
     background: url(/img/bg_grid_time_sep.png) right 0 no-repeat;
@@ -1709,6 +1735,7 @@ button {
     width: 144px;
     z-index: 1;
     padding-bottom: 20px;
+    -webkit-box-sizing: border-box;
     box-sizing: border-box;
     background: url(/img/bg_grid_chlist.png) right 0 repeat-y;
 }
@@ -1720,6 +1747,7 @@ button {
     text-shadow: 0px -2px rgba(0, 0, 0, 0.20);
     color: #fff;
     background: url(/img/bg_grid_chlist_1.png);
+    -webkit-box-sizing: border-box;
     box-sizing: border-box;
 }
 
@@ -1753,6 +1781,7 @@ button {
     display: block;
     left: 140px;
     padding-bottom: 20px;
+    -webkit-box-sizing: border-box;
     box-sizing: border-box;
 }
 
@@ -1768,6 +1797,7 @@ button {
     color: #323232;
     -webkit-user-drag: none;
     padding-right: 2px;
+    -webkit-box-sizing: border-box;
     box-sizing: border-box;
     background: url(/img/bg_grid_sep.png) right 0 no-repeat, url(/img/bg_grid_sep_2.png) 0 bottom repeat-x;
 }
@@ -1847,6 +1877,7 @@ button {
 .miiverse-modal .loading {
     display: block;
     height: 80px;
+    -webkit-box-sizing: content-box;
     box-sizing: content-box;
     margin-bottom: 40px;
     background: url("data:image/gif;base64,R0lGODlhLAAsAMQUAPT09PPz8+Tk5OHh4d7e3tzc3ODg4JfVbt3d3d/f35bUbpjVb5nXcJbTbZbUbZrXcf39/eXl5f///1a9Ev///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH/C05FVFNDQVBFMi4wAwEAAAAh+QQFAAAUACwAAAAALAAsAAAF/yAljmRpnmiqriw7vXBcRnRtz3ZOxvyE57UfMLLrwYRApG5kPJKGwSeUyGz6pFDlrdrURkdTqsh6BU+9tGIXO0SLKWS3nGucm7MjiX7PL/H/En6AeySDhIWGgYiGLY2Oj5CRkpNqdZU9dnBWJXFsSXSYlzyZnaCjnktjm6IyqFuqa6atd22yTrYvpKu4ZSICv8DBrLewliPByALDucu9FMnCIxDT1NUl1dgQ19nUJNzd3t/a4d+U5ufo6ZSlxaEjC/Dx8s2cuyLy+Av0+yMH/v8A+bU71Q+gQYGaYokweJBXPYUUFEicSBEhu4gUM1q0R8GBx48gN0JsQLKkSZHGRCGYXNmABICXMGOWiEkTwMyaMEkE2MmzZ4meQAP8DMpTRAgAIfkEBQAAFAAsEQACABkAKAAABXzgJI4kZZ5oSq5T6qJs+b7xONN1e6v5ztc+WC9oyumIRqJyyWw6n9CodEqtWq/YrHbL7XIX4LA4NSibz+L0gnxuH97weMpAr9vj+MPczs/LUQmBgoMKhYaHKQSKi4yHjgqJjJIOlJWWKQiZmpsNnZ6fKQWio6Sfpg2hpKohACH5BAUAABQALAIAAgAoACgAAAWPICWOZGme4qSuLOq+IytPcH3Ora2nuLrvPd/PFqQNa8UjMqiEJZuuJ3RKrVqv2Kx2y+16v+CweEwum8/o9HHBbrtLg7h8vnPbF/C5fnfo+/8lBoKDhHx/h4GEioaHfiUJkJGSOwqVlpclBJqbnJSXn5mcojsOpaanJQiqq6w7Da+wsSUFtLW2rrG5s7a8OyEAIfkEBQAAFAAsAgARACgAGQAABXLgI44kZZ5omk5s65Lwo86za09xSe/m/eYiHs/XAgaFNCLLKEPWlEznk8ioWq9SlXJy7TKyK6UXCz5ty+i0es1uu9/CgXxOh6Po+IH9ZOj7/3smf4MGgRQJiImKhgSNjo+Mj5KGCJWWl4YFmpucmZyfhiEAIfkEBQAAFAAsAgACACgAKAAABXDgI44kZZ5oqq4m6T5sLJ9vOd9qPeI8rcM93g8YvA2LuCNyplzGms6odEqtWq/YWWTL7WYp3XDkK/Zmy1wyenxeq9FfgXxOj9Pv9vv8y+/7/4CBWROEhYZfhokTiIqFjI2Lg5CRWJOUV5aPjZqKnIkhACH5BAUAABQALAIAAgAZACgAAAVdYCSOJGWaT6quZBud6Cq7JSzPtAhTN5u/tl7qBzwJh7/d8UFUHptBIdR43Fmv2Kx2y+16v+CweEwum8/otHrNbrvf7Yl8Tv/S7xM7fq7f571+cn17g3iFd4d1gIEhACH5BAUAABQALAIAAgAoACgAAAVxICWOZBmdaFo+bOuWMJnO0erecU6r5I3nsB3K5mMBg8Jar2g8ypLEovMpjPqmo6RyxGxitdbfF7pkYs/otHrNbrvf8Lh8Tq/b7/i8fs/v+/+AgYJqE4WGh3eHihOJi4aNjox2kYWQjpaLmIqaiJOUdyEAIfkEBQAAFAAsAgACACgAGQAABWAgJY5kaZ5ipK4s6r4jK0dwfc6trae4uu89388WpA1rxSMyqIQlm64ndEqtWq/YrGjC7Xqbj7B47C1PwOO0+atMq9dctDsMj7fn9Lp8Xj/f8X1NDIOEhYFKhYkMh0eKhSEAOw==") center center no-repeat;
@@ -1963,6 +1994,7 @@ button {
 .miiverse-modal .post .content {
     width: 500px;
     position: relative;
+    -webkit-box-sizing: border-box;
     box-sizing: border-box;
     padding: 10px 18px;
     padding-top: 0px;
@@ -2030,6 +2062,7 @@ button {
     background:
         url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAA2CAIAAACJCGTLAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAA5SURBVBhXjY83DgAwDALP/P/JLilStkTxgCiCASJCZkZVCdDkrY8/uPm5++bd3ivv9DJT7q71ZQEYLr9IGbcPEZEAAAAASUVORK5CYII=) 0 bottom repeat-x,
         #fff;
+    -webkit-box-shadow: 0px 0px 4px 1px rgba(0, 0, 0, 0.35);
     box-shadow: 0px 0px 4px 1px rgba(0, 0, 0, 0.35);
 }
 
@@ -2241,6 +2274,7 @@ button {
     margin-left: 15px;
     -webkit-border-radius: 5px;
     border-radius: 5px;
+    -webkit-box-shadow: 0px 1px 2px rgba(0, 0, 0, 0.3);
     box-shadow: 0px 1px 2px rgba(0, 0, 0, 0.3);
     pointer-events: all;
     background:
@@ -2255,6 +2289,7 @@ button {
 }
 
 .bottom .miiverse-button.hover {
+    -webkit-box-shadow: 0px 1px 1px 0px rgba(0, 0, 0, 0.3);
     box-shadow: 0px 1px 1px 0px rgba(0, 0, 0, 0.3);
     top: -3px;
 }
@@ -2379,8 +2414,8 @@ button {
 
 .program-fulldetails-page .program-details .program-description>p {
     width: 390px;
-    box-sizing: border-box;
     -webkit-box-sizing: border-box;
+    box-sizing: border-box;
 }
 
 .program-fulldetails-page .program-slide {
@@ -2397,6 +2432,7 @@ button {
     top: 22px;
     margin-left: 18px;
     font-size: 17px;
+    -webkit-box-sizing: border-box;
     box-sizing: border-box;
     padding: 15px 19px;
     background: url(/img/sizeban5.png);
@@ -2410,6 +2446,7 @@ button {
     padding: 8px;
     top: 22px;
     padding-top: 15px;
+    -webkit-box-sizing: border-box;
     box-sizing: border-box;
     position: relative;
     background: url(/img/sizeban5.png);
@@ -2525,6 +2562,7 @@ button {
 
 .mv-user-detail-container .miiverse-jump {
     background: url(/img/mv_logo.png) 10px 7px no-repeat, url(/img/button-bg.png) 0 bottom repeat-x, #fff;
+    -webkit-box-sizing: border-box;
     box-sizing: border-box;
     color: #323232;
     -webkit-box-pack: center;
@@ -2539,6 +2577,7 @@ button {
     padding-left: 80px;
     margin: 30px auto;
     margin-bottom: 60px;
+    -webkit-box-shadow: 0px 0px 4px 1px rgba(0, 0, 0, 0.35);
     box-shadow: 0px 0px 4px 1px rgba(0, 0, 0, 0.35);
     -webkit-border-radius: 8px;
     border-radius: 8px;
@@ -2547,6 +2586,7 @@ button {
 .mv-user-detail-container .miiverse-jump.disabled {
     background: url(/img/mv_logo_disabled.png) 10px 7px no-repeat, #bebebe;
     color: #585858;
+    -webkit-box-shadow: 0px 2px #ffffff;
     box-shadow: 0px 2px #ffffff;
     text-shadow: 0px 2px #e8e8e8;
 }
@@ -2580,8 +2620,8 @@ button {
     position: relative;
     top: 22px;
     margin-left: 12px;
-    box-sizing: border-box;
     -webkit-box-sizing: border-box;
+    box-sizing: border-box;
     background-position: -10px -354px;
 }
 
@@ -2594,8 +2634,6 @@ button {
     -webkit-border-radius: 4px;
     border-radius: 4px;
     border: 2px solid #ff5e5e;
-    -webkit-border-radius: 4px;
-    border-radius: 4px;
     white-space: nowrap;
 }
 
@@ -2654,6 +2692,7 @@ button {
     -webkit-border-radius: 10px;
     border-radius: 10px;
     height: 46px;
+    -webkit-box-shadow:
     box-shadow:
         inset 0px -1px 2px 1px #b5b5b5,
         0px 1px 3px 0px rgba(0, 0, 0, 0.5);
@@ -2672,6 +2711,7 @@ button {
 
 .program-fulldetails-page .related-buttons>a.disabled {
     background: #c2c2c2;
+    -webkit-box-shadow: none;
     box-shadow: none;
     color: #818181;
     text-shadow: 0px 2px #e8e8e8;
@@ -2686,6 +2726,7 @@ button {
             to(#388e3c));
     color: #fff;
     text-shadow: 0px 1px rgba(0, 0, 0, 0.3);
+    -webkit-box-shadow:
     box-shadow:
         inset 0px -1px 2px 1px #2e7d32,
         0px 1px 3px 0px rgba(0, 0, 0, 0.5);
@@ -2695,6 +2736,7 @@ button {
     display: block;
     height: 1px;
     background: #a8a8a8;
+    -webkit-box-shadow: 0px 1px #fff;
     box-shadow: 0px 1px #fff;
     margin-bottom: 15px;
 }
@@ -2719,6 +2761,7 @@ button {
     background: #f9f9f9;
     -webkit-border-radius: 12px;
     border-radius: 12px;
+    -webkit-box-shadow: 0 4px 16px rgba(0,0,0,0.35);
     box-shadow: 0 4px 16px rgba(0,0,0,0.35);
     overflow: hidden;
 }
@@ -2773,6 +2816,7 @@ button {
     color: #333;
     font-size: 20px;
     text-decoration: none;
+    -webkit-transition: background 0.15s;
     transition: background 0.15s;
 }
 
@@ -2893,8 +2937,8 @@ button {
     padding: 10px;
     white-space: pre-wrap;
     padding-top: 2px;
-    box-sizing: border-box;
     -webkit-box-sizing: border-box;
+    box-sizing: border-box;
     z-index: 1;
     line-height: 1.46;
     font-size: 23px;
@@ -2912,8 +2956,8 @@ button {
     position: relative;
     width: 75px;
     height: 87px;
-    box-sizing: border-box;
     -webkit-box-sizing: border-box;
+    box-sizing: border-box;
     border: 1px solid rgba(0, 0, 0, 0.3);
     z-index: 5;
 }
@@ -2999,6 +3043,7 @@ button {
     width: 400px;
     -webkit-border-radius: 10px;
     border-radius: 10px;
+    -webkit-box-shadow: 0px 0px 2px 1px rgba(0, 0, 0, 0.25);
     box-shadow: 0px 0px 2px 1px rgba(0, 0, 0, 0.25);
     display: -webkit-box;
     -webkit-box-align: center;
@@ -3141,6 +3186,7 @@ button {
 }
 
 .miiverse-post-modal .dialog-container .post-menu .mii {
+    -webkit-box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.5);
     box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.5);
     width: 68px;
     height: 68px;
@@ -3161,8 +3207,8 @@ button {
     top: 77px;
     font-size: 19px;
     right: 9px;
-    box-sizing: border-box;
     -webkit-box-sizing: border-box;
+    box-sizing: border-box;
     text-shadow: 0px 2px #fff;
     -webkit-border-radius: 8px;
     border-radius: 8px;
@@ -3267,6 +3313,7 @@ button {
     border-left: 1px solid #727272;
     overflow: hidden;
     padding-bottom: 60px;
+    -webkit-box-sizing: border-box;
     box-sizing: border-box;
 }
 
@@ -3274,6 +3321,7 @@ button {
     height: 65px;
     display: block;
     position: relative;
+    -webkit-box-sizing: border-box;
     box-sizing: border-box;
 }
 
@@ -3349,6 +3397,7 @@ button {
 .miiverse-doodle-modal .menu-option a:last-child,
 .miiverse-doodle-modal .color-option a:last-child {
     border-top: 1px solid #727272;
+    -webkit-box-shadow: 0px 1px #727272;
     box-shadow: 0px 1px #727272;
     border-bottom: 1px solid #000;
 }
@@ -3359,6 +3408,7 @@ button {
     height: 48px;
     -webkit-border-radius: 30px;
     border-radius: 30px;
+    -webkit-box-shadow: 0px 1px 2px #000000;
     box-shadow: 0px 1px 2px #000000;
     position: absolute;
     top: 8px;
@@ -3388,10 +3438,12 @@ button {
     -webkit-box-align: center;
     -webkit-box-pack: center;
     background: url(/img/bg-doodle-post.png) repeat-x;
+    -webkit-box-shadow: 0px 0px 0px 1px #727272;
     box-shadow: 0px 0px 0px 1px #727272;
     border-top-left-radius: 15px;
     height: 54px;
     min-width: 150px;
+    -webkit-box-sizing: border-box;
     box-sizing: border-box;
     padding: 0 10px;
 }
@@ -3464,8 +3516,10 @@ button {
     padding-top: 9px;
     -webkit-border-radius: 4px;
     border-radius: 4px;
+    -webkit-box-shadow: 0px 1px #f2f2f2;
     box-shadow: 0px 1px #f2f2f2;
     padding-left: 8px;
+    -webkit-box-sizing: border-box;
     box-sizing: border-box;
     overflow: hidden;
 }

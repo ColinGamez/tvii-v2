@@ -9,7 +9,7 @@ const environment = env.VINO_JP_CONFIG_ENV as "dev" | "stg" | "prod";
 const latest_version = APP_VERSION;
 
 /** Check whitelist for a given PID. Returns true if allowed, false otherwise. */
-async function checkWhitelist(pid: string): Promise<boolean> {
+async function checkWhitelist(pid: string | number): Promise<boolean> {
     const whitelistRow = await db_whitelist("access_allowlist")
         .where("pid", pid)
         .first();
@@ -80,7 +80,7 @@ const middleware = async (
             );
     }
 
-    if (!serviceToken.version || serviceToken.version != latest_version) {
+    if (!serviceToken.version || serviceToken.version !== latest_version) {
         logger.error(
             "User has outdated Rose Patcher: %j", serviceToken);
         return res

@@ -3668,9 +3668,6 @@ function initVinoHome() {
 
                 var prodet = det.find(".program-details");
 
-                /*var programListingID = details.program.listingId;
-                var episodeID = details.program.showId;*/
-
                 var channelNumber = details.channel.number;
                 var channelName = details.channel.name;
                 var programName = details.program.showName;
@@ -5381,6 +5378,7 @@ function initVinoHome() {
     var ctx = null;
     var undoStack = null;
     var redoStack = null;
+    var handleMouseUp = null;
 
     function setMiiverseCanvasListener(screenshot) {
 
@@ -5486,12 +5484,12 @@ function initVinoHome() {
             lastPos = pos;
         }
 
-        function handleMouseUp() {
+        handleMouseUp = function() {
             if (drawing) {
                 drawing = false;
                 saveState();
             }
-        }
+        };
 
         $(".miiverse-doodle-modal .finish-doodle-modal").on("click", function (e) {
             if (isHeaderButtonBlocked) return;

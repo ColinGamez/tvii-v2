@@ -48,14 +48,14 @@ const post_count_label = {
 function getSecondsUntilMidnight() {
     const now = new Date();
 
-    const nyNow = new Date(
-        now.toLocaleString("en-US", { timeZone: "America/New_York" })
+    const jpNow = new Date(
+        now.toLocaleString("en-US", { timeZone: "Asia/Tokyo" })
     );
 
-    const nyMidnight = new Date(nyNow);
-    nyMidnight.setHours(24, 0, 0, 0);
+    const jpMidnight = new Date(jpNow);
+    jpMidnight.setHours(24, 0, 0, 0);
 
-    return Math.floor((nyMidnight.getTime() - nyNow.getTime()) / 1000);
+    return Math.floor((jpMidnight.getTime() - jpNow.getTime()) / 1000);
 }
 
 router.get("/", async (req: Request, res: Response) => {
