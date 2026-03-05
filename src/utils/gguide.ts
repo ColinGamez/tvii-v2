@@ -642,15 +642,22 @@ async function refreshGrids(): Promise<void> {
     // Sort by start time
     allPrograms.sort((a, b) => a.startUtc - b.startUtc);
 
-    cachedChannels = allChannels;
-    cachedPrograms = allPrograms;
-    lastGridRefresh = now;
+    // Only overwrite cache if we got at least some data; otherwise keep stale cache
+    if (allChannels.size > 0) {
+        cachedChannels = allChannels;
+        cachedPrograms = allPrograms;
+        lastGridRefresh = now;
 
-    logger.success(
-        "G-Guide: loaded %d channels, %d programs (today + tomorrow)",
-        cachedChannels.size,
-        cachedPrograms.length,
-    );
+        logger.success(
+            "G-Guide: loaded %d channels, %d programs (today + tomorrow)",
+            cachedChannels.size,
+            cachedPrograms.length,
+        );
+    } else {
+        logger.warn("G-Guide: all fetches failed, keeping previous cache (%d channels, %d programs)",
+            cachedChannels.size, cachedPrograms.length);
+        lastGridRefresh = now - gridRefreshMs + 60_000; // retry in 1 min
+    }
 }
 
 // ── Public API (drop-in replacement for xmltv.ts) ────────────

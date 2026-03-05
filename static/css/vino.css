@@ -630,6 +630,7 @@ button {
 .program-list .program .station .num {
     background: url(/img/bg-numch.png) repeat-x;
     color: #fff;
+    -webkit-border-radius: 2px;
     border-radius: 2px;
     vertical-align: top;
     line-height: 1.3;
@@ -658,6 +659,7 @@ button {
     background-color: #ff64c4;
     color: #fff;
     padding: 0 3px;
+    -webkit-border-radius: 2px;
     border-radius: 2px;
 }
 
@@ -669,6 +671,7 @@ button {
 
 .program-list .program .info>.cc {
     padding: 0 3px;
+    -webkit-border-radius: 6px;
     border-radius: 6px;
     -webkit-box-sizing: border-box;
     box-sizing: border-box;
@@ -885,6 +888,7 @@ button {
     min-width: 40px;
     background: #949494;
     color: #fff;
+    -webkit-border-radius: 3px;
     border-radius: 3px;
 }
 
@@ -941,6 +945,7 @@ button {
     background: url(/img/dialog-bg.png) 0 0 no-repeat #f9f9f9;
     box-sizing: border-box;
     -webkit-box-sizing: border-box;
+    -webkit-border-radius: 10px;
     border-radius: 10px;
     text-align: center;
     box-shadow: 0px 0px 4px 1px rgba(0, 0, 0, 0.3);
@@ -976,6 +981,7 @@ button {
 #setup-modal-6 .mii {
     background: #fff;
     width: 128px;
+    -webkit-border-radius: 10px;
     border-radius: 10px;
     box-shadow: 0px 0px 0px 3px #c7c7c7;
     margin: auto;
@@ -991,6 +997,7 @@ button {
     min-height: 180px;
     margin-top: 10px;
     margin-bottom: 10px;
+    -webkit-border-radius: 10px;
     border-radius: 10px;
     background: #ffffff;
     border: 2px solid #acacac;
@@ -1057,6 +1064,7 @@ button {
     background: url(/img/bg-numch.png) repeat-x;
     background-size: contain;
     color: #fff;
+    -webkit-border-radius: 5px;
     border-radius: 5px;
     font-size: 20px;
     text-shadow: 0px -1px #919191;
@@ -1117,6 +1125,7 @@ button {
     padding: 4px;
     margin: 0 14px;
     box-shadow: 0px 0px 4px 1px rgba(0, 0, 0, 0.35);
+    -webkit-border-radius: 8px;
     border-radius: 8px;
 }
 
@@ -1144,6 +1153,7 @@ button {
     height: 70px;
     background: url(/img/zipcode-input.png) 0 0 no-repeat;
     border: 2px solid #8a8a8a;
+    -webkit-border-radius: 5px;
     border-radius: 5px;
     box-sizing: border-box;
     font-size: 34px;
@@ -1157,6 +1167,7 @@ button {
     min-height: 98px;
     margin-top: 10px;
     margin-bottom: 30px;
+    -webkit-border-radius: 10px;
     border-radius: 10px;
     background: #f3f3f3;
     border: 2px solid #b0b0b0;
@@ -1301,6 +1312,7 @@ button {
     line-height: 1.2;
     text-shadow: 0px -2px rgba(0, 0, 0, 0.2);
     width: 420px;
+    -webkit-border-radius: 5px;
     border-radius: 5px;
     margin: 7px 0px;
     box-shadow: 0px 1px 4px 0px rgba(0, 0, 0, 0.35);
@@ -1370,6 +1382,7 @@ button {
     color: #fff;
     height: 65px;
     box-sizing: border-box;
+    -webkit-border-radius: 5px;
     border-radius: 5px;
     font-size: 36px;
     padding: 5px;
@@ -1422,6 +1435,7 @@ button {
     display: block;
     width: 400px;
     position: relative;
+    -webkit-border-radius: 5px;
     border-radius: 5px;
     border: 2px solid #afafaf;
     height: 50px;
@@ -1573,6 +1587,7 @@ button {
     font-weight: bold;
     font-size: 13px;
     padding: 2px;
+    -webkit-border-radius: 2px;
     border-radius: 2px;
 }
 
@@ -1679,7 +1694,7 @@ button {
 }
 
 .guide-time-container a.label {
-    width: 140px;
+    width: 144px;
     font-size: 18px;
     padding-top: 4px;
 }
@@ -1744,6 +1759,7 @@ button {
 .guide-container>div {
     height: 68px;
     display: -webkit-box;
+    overflow: hidden;
 }
 
 .guide-container>div a {
@@ -1962,6 +1978,7 @@ button {
     line-height: 1.2;
     left: 26px;
     font-size: 17px;
+    -webkit-border-radius: 50px;
     border-radius: 50px;
     padding: 3px 15px;
     position: relative;
@@ -2008,6 +2025,7 @@ button {
     top: 9px;
     border: 0;
     width: 340px;
+    -webkit-border-radius: 8px;
     border-radius: 8px;
     background:
         url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAA2CAIAAACJCGTLAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAA5SURBVBhXjY83DgAwDALP/P/JLilStkTxgCiCASJCZkZVCdDkrY8/uPm5++bd3ivv9DJT7q71ZQEYLr9IGbcPEZEAAAAASUVORK5CYII=) 0 bottom repeat-x,
@@ -2177,6 +2195,7 @@ button {
     top: -3px;
     color: #323232;
     border: 1px solid #bbbbbb;
+    -webkit-border-radius: 3px;
     border-radius: 3px;
     font-size: 18px;
     padding: 0 10px;
@@ -2220,6 +2239,7 @@ button {
     height: 42px;
     top: -5px;
     margin-left: 15px;
+    -webkit-border-radius: 5px;
     border-radius: 5px;
     box-shadow: 0px 1px 2px rgba(0, 0, 0, 0.3);
     pointer-events: all;
@@ -2442,6 +2462,7 @@ button {
     top: 2px;
     left: 3px;
     position: absolute;
+    -webkit-border-radius: 6px;
     border-radius: 6px;
 }
 
@@ -2458,6 +2479,7 @@ button {
     width: 700px;
     margin: auto;
     margin-top: 20px;
+    -webkit-border-radius: 20px;
     border-radius: 20px;
 }
 
@@ -2468,6 +2490,7 @@ button {
     top: 20px;
     left: 30px;
     border: 2px solid #b2b2b2;
+    -webkit-border-radius: 16px;
     border-radius: 16px;
 }
 
@@ -2517,6 +2540,7 @@ button {
     margin: 30px auto;
     margin-bottom: 60px;
     box-shadow: 0px 0px 4px 1px rgba(0, 0, 0, 0.35);
+    -webkit-border-radius: 8px;
     border-radius: 8px;
 }
 
@@ -2567,8 +2591,10 @@ button {
     width: 370px;
     margin: auto;
     margin-bottom: 6px;
+    -webkit-border-radius: 4px;
     border-radius: 4px;
     border: 2px solid #ff5e5e;
+    -webkit-border-radius: 4px;
     border-radius: 4px;
     white-space: nowrap;
 }
@@ -2625,6 +2651,7 @@ button {
     color: #323232;
     font-size: 21px;
     margin-bottom: 13px;
+    -webkit-border-radius: 10px;
     border-radius: 10px;
     height: 46px;
     box-shadow:
@@ -2690,6 +2717,7 @@ button {
     top: 70px;
     right: 20px;
     background: #f9f9f9;
+    -webkit-border-radius: 12px;
     border-radius: 12px;
     box-shadow: 0 4px 16px rgba(0,0,0,0.35);
     overflow: hidden;
@@ -2714,6 +2742,7 @@ button {
     height: 34px;
     background: url(/img/headerb1.png) no-repeat 0 -65px;
     background-size: 60px auto;
+    -webkit-border-radius: 6px;
     border-radius: 6px;
     opacity: 0.9;
 }
@@ -2968,6 +2997,7 @@ button {
 .program-airing-image {
     height: 290px;
     width: 400px;
+    -webkit-border-radius: 10px;
     border-radius: 10px;
     box-shadow: 0px 0px 2px 1px rgba(0, 0, 0, 0.25);
     display: -webkit-box;
@@ -2991,6 +3021,7 @@ button {
     width: 365px;
     height: 64px;
     text-align: center;
+    -webkit-border-radius: 10px;
     border-radius: 10px;
     background:
         url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAA4AAAAOCAYAAAAfSC3RAAAAOElEQVQoFWP8//+/CAMqeIPKxc5jwi5MWJT+GhmBfiTsLiwq6O9UFiyuQBbCGVX0dyrZNg6h6AAAgM4LE6RR8hUAAAAASUVORK5CYII=) repeat 0 0,
@@ -3082,6 +3113,7 @@ button {
     width: 700px;
     margin: auto;
     margin-top: 20px;
+    -webkit-border-radius: 20px;
     border-radius: 20px;
 }
 
@@ -3114,6 +3146,7 @@ button {
     height: 68px;
     margin-left: 10px;
     background: #fff;
+    -webkit-border-radius: 10px;
     border-radius: 10px;
     float: left;
 }
@@ -3131,6 +3164,7 @@ button {
     box-sizing: border-box;
     -webkit-box-sizing: border-box;
     text-shadow: 0px 2px #fff;
+    -webkit-border-radius: 8px;
     border-radius: 8px;
     background: url(/img/spoiler-button.png);
     background-repeat: no-repeat;
@@ -3261,6 +3295,7 @@ button {
     top: 32px;
     width: 22px;
     height: 22px;
+    -webkit-border-radius: 20px;
     border-radius: 20px;
     pointer-events: none;
 }
@@ -3322,6 +3357,7 @@ button {
     display: block;
     width: 48px;
     height: 48px;
+    -webkit-border-radius: 30px;
     border-radius: 30px;
     box-shadow: 0px 1px 2px #000000;
     position: absolute;
@@ -3426,6 +3462,7 @@ button {
     height: 42px;
     border: 1px solid #aeadad;
     padding-top: 9px;
+    -webkit-border-radius: 4px;
     border-radius: 4px;
     box-shadow: 0px 1px #f2f2f2;
     padding-left: 8px;

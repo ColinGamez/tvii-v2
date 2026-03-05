@@ -719,6 +719,7 @@ var tvii = {
         }
 
         xhr.ontimeout = function () {
+            if (!xhr) return;
             if (callbackError) {
                 callbackError(xhr);
             }
@@ -726,21 +727,20 @@ var tvii = {
         };
 
         xhr.onreadystatechange = function () {
-            if (xhr.readyState == 4) {
-                if (xhr.status == 200) {
-                    if (callbackSuccess) {
-                        callbackSuccess(
-                            xhr.responseText || "",
-                            xhr
-                        );
-                    }
-                } else {
-                    if (callbackError) {
-                        callbackError(xhr);
-                    }
+            if (!xhr || xhr.readyState != 4) return;
+            if (xhr.status == 200) {
+                if (callbackSuccess) {
+                    callbackSuccess(
+                        xhr.responseText || "",
+                        xhr
+                    );
                 }
-                xhr = null;
+            } else {
+                if (callbackError) {
+                    callbackError(xhr);
+                }
             }
+            xhr = null;
         };
 
         if (type === "POST" && formData) {
@@ -761,7 +761,6 @@ var tvii = {
 
         var xhr = new XMLHttpRequest();
         xhr.open(type, url);
-        //xhr.timeout = 15000;
 
         if (headers) {
             for (var i = 0; i < headers.length; i++) {
@@ -772,29 +771,21 @@ var tvii = {
             }
         }
 
-        xhr.ontimeout = function () {
-            if (callbackError) {
-                callbackError(xhr);
+        xhr.onreadystatechange = function () {
+            if (!xhr || xhr.readyState != 4) return;
+            if (xhr.status == 200) {
+                if (callbackSuccess) {
+                    callbackSuccess(
+                        xhr.responseText || "",
+                        xhr
+                    );
+                }
+            } else {
+                if (callbackError) {
+                    callbackError(xhr);
+                }
             }
             xhr = null;
-        };
-
-        xhr.onreadystatechange = function () {
-            if (xhr.readyState == 4) {
-                if (xhr.status == 200) {
-                    if (callbackSuccess) {
-                        callbackSuccess(
-                            xhr.responseText || "",
-                            xhr
-                        );
-                    }
-                } else {
-                    if (callbackError) {
-                        callbackError(xhr);
-                    }
-                }
-                xhr = null;
-            }
         };
 
         if (type === "POST" && formData) {
@@ -4826,7 +4817,7 @@ function initVinoHome() {
                 // Find posts newer than our current newest
                 var newPosts = [];
                 for (var i = 0; i < posts.length; i++) {
-                    if (posts[i].id === newestPostId) break;
+                    if (posts[i].post_id === newestPostId) break;
                     newPosts.push(posts[i]);
                 }
 
@@ -4980,6 +4971,7 @@ function initVinoHome() {
             disableTopBotHeaders(false);
         }, function () {
             disableTopBotHeaders(false);
+            miiDetModal.find(".display-name").text(tvii.getLoc("vino.error.network"));
         });
         //Back button on post modal
         miiDetModal.find(".btn-1").on("click", function (e) {
@@ -6108,6 +6100,8 @@ function initVinoHome() {
 
     function initLiveTab() {
         abortReqsXhr();
+        clearInterval(miiUserDetailInterval);
+        miiUserDetailInterval = null;
         disableTopBotHeaders(true);
         tvii.pushStateWithQuery("scene", "livetab", false);
         showMiiversePostPreview(false);
@@ -6177,6 +6171,8 @@ function initVinoHome() {
 
     function initGuideTab() {
         abortReqsXhr();
+        clearInterval(miiUserDetailInterval);
+        miiUserDetailInterval = null;
         showMiiversePostPreview(false);
         $(".footer .bottom").addClass("guideopt");
         tvii.pushStateWithQuery("scene", "guidetab", false);
@@ -6295,7 +6291,7 @@ function initVinoHome() {
         var cc = $(".guide-channel-container");
         var gc = $(".guide-container");
         cc.empty();
-        gc.empty();
+        gc.empty().addClass("genre");
 
         if (!data || data.length === 0) {
             gc.append('<div style="padding:30px;color:#666;text-align:center;">' + tvii.getLoc("vino.home.guide.no_data") + '</div>');
@@ -6479,6 +6475,8 @@ function initVinoHome() {
 
     function initRecommendedTab() {
         abortReqsXhr();
+        clearInterval(miiUserDetailInterval);
+        miiUserDetailInterval = null;
         showMiiversePostPreview(false);
         $(".footer .bottom").removeClass("guideopt");
         tvii.pushStateWithQuery("scene", "recomtab", false);
@@ -6594,6 +6592,8 @@ function initVinoHome() {
                 setUpTitleScrollbar(programPreviewUpdate, programConfirmSel);
                 window.setListenerToProgram();
                 setupProgramTimer();
+                setContainerPagination();
+                setupChannelFilter();
                 vino.loading_setIconAppear(false);
 
                 setTimeout(function () {
