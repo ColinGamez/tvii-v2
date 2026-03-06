@@ -16,6 +16,7 @@ const ALLOWED_IMAGE_DOMAINS = new Set([
     "image.tmdb.org",
     "tmsimg.com",
     "cdn.projectrose.cafe",
+    "bangumi.org",
 ]);
 
 /** Check if a URL's hostname is in the allowlist (including subdomains) */
