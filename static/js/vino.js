@@ -230,7 +230,7 @@ var tvii = {
 
             return tvii.sendXHR("GET", "/api/v1/socials/postsAlt?" + query,
                 function (text) {
-                    callbackSuccess(JSON.parse(text))
+                    try { callbackSuccess(JSON.parse(text)); } catch (e) { if (callbackError) callbackError(); }
                 }, callbackError
             )
         },
@@ -820,7 +820,7 @@ var tvii = {
             String(limit) +
             "&offset=" +
             String(offset), function (data) {
-                callbackSuccess(JSON.parse(data));
+                try { callbackSuccess(JSON.parse(data)); } catch (e) { if (callbackFailure) callbackFailure(); }
             }, callbackFailure)
     },
     requestProgramDetails: function (
@@ -840,8 +840,10 @@ var tvii = {
             "&tz_name=" + tvii.getTVProviderTZ() +
             "&provider_id=" + tvii.getTVProviderID(),
             function (responseText) {
-                var details = JSON.parse(responseText).data;
-                callbackSuccess(details);
+                try {
+                    var details = JSON.parse(responseText).data;
+                    callbackSuccess(details);
+                } catch (e) { if (callbackFailure) callbackFailure(); }
             },
             callbackFailure
         );
@@ -1261,10 +1263,12 @@ function initVinoSetup() {
         //Checks to avoid problems....
         if (!tvProviderId || !tvProviderId.length) {
             accountCreating = false;
-            return alert(tvii.getLoc("vino.setup.error.no_provider_id"));
+            tvii.alert(tvii.getLoc("vino.setup.error.no_provider_id"));
+            return;
         } else if (!tvProviderTz || !tvProviderTz.length) {
             accountCreating = false;
-            return alert(tvii.getLoc("vino.setup.error.no_provider_tz"));
+            tvii.alert(tvii.getLoc("vino.setup.error.no_provider_tz"));
+            return;
         }
 
         var form = new FormData();
@@ -1299,7 +1303,7 @@ function initVinoSetup() {
             function (request) {
                 var status = request.responseText ? request.responseText : null;
                 if (status) {
-                    status = JSON.parse(status).status;
+                    try { status = JSON.parse(status).status; } catch (e) { status = null; }
                     if (status === "error_not_pretendo") {
                         handleError(true);
                     } else {
@@ -1371,7 +1375,12 @@ function initVinoSetup() {
             vino.loading_setIconAppear(false);
 
             if (request.status === 200) {
-                var res = JSON.parse(request.responseText);
+                try {
+                    var res = JSON.parse(request.responseText);
+                } catch (e) {
+                    tvii.alert(tvii.getLoc("vino.error.generic"));
+                    return;
+                }
                 if (!res.active) {
                     tvii.alert(tvii.getLoc("vino.setup.bsky-login.p8"));
                     return;
@@ -1526,7 +1535,12 @@ function initVinoSetup() {
             "GET",
             endpoint,
             function (responseText) {
-                var providers = JSON.parse(responseText);
+                try {
+                    var providers = JSON.parse(responseText);
+                } catch (e) {
+                    vino.loading_setIconAppear(false);
+                    return;
+                }
                 setUpProviderAnchors(providers);
                 vino.loading_setIconAppear(false);
             },
@@ -1545,7 +1559,7 @@ function initVinoSetup() {
 
     $(".help-button").on("click", function () {
         vino.soundPlayVolume("SE_HELP", 30);
-        alert(tvii.getLoc("vino.setup.help." + $(this).attr("data-help")))
+        tvii.alert(tvii.getLoc("vino.setup.help." + $(this).attr("data-help")));
     })
 
     $(".channel-search-container .chnumber").on("change", function () {
@@ -1849,7 +1863,12 @@ function initVinoSetup() {
             "GET",
             endpoint,
             function (responseText) {
-                var channel_list = JSON.parse(responseText);
+                try {
+                    var channel_list = JSON.parse(responseText);
+                } catch (e) {
+                    vino.loading_setIconAppear(false);
+                    return;
+                }
                 setUpFavoriteCandidates(channel_list, false);
                 vino.loading_setIconAppear(false);
             },
@@ -1953,12 +1972,22 @@ function initVinoSetup() {
             var favEndpoint = "/api/v1/providers/countries/" + country + "/" + bodyProvId + "/channels?tz_name=" + bodyProvTz;
 
             tvii.sendXHRNoTimeout("GET", favEndpoint, function (responseText) {
-                var channel_list = JSON.parse(responseText);
+                try {
+                    var channel_list = JSON.parse(responseText);
+                } catch (e) {
+                    vino.loading_setIconAppear(false);
+                    return;
+                }
                 setUpFavoriteCandidates(channel_list, false);
 
                 // Fetch existing favorites and pre-mark them
                 tvii.sendXHRNoTimeout("GET", "/api/v1/act/favorites", function (favText) {
-                    var favData = JSON.parse(favText);
+                    try {
+                        var favData = JSON.parse(favText);
+                    } catch (e) {
+                        vino.loading_setIconAppear(false);
+                        return;
+                    }
                     if (favData.channels && favData.channels.length) {
                         for (var fi = 0; fi < favData.channels.length; fi++) {
                             var chId = favData.channels[fi];
@@ -3673,7 +3702,7 @@ function initVinoHome() {
             var sound = sounds[Math.floor(Math.random() * sounds.length)];
             vino.soundPlayVolume(sound, 60);
 
-            alert(tvii.getLoc("vino.home.not_available_actor_feature"));
+            tvii.alert(tvii.getLoc("vino.home.not_available_actor_feature"));
         });
     }
 
@@ -4009,7 +4038,7 @@ function initVinoHome() {
             "GET",
             "/api/v1/act/reminders/check?listingId=" + encodeURIComponent(listingId),
             function (responseText) {
-                var result = JSON.parse(responseText);
+                try { var result = JSON.parse(responseText); } catch (e) { return; }
                 if (result.hasReminder) {
                     $reminder.addClass("active");
                     $reminder.find("span").text(tvii.getLoc("vino.home.program.button.remove_reminder"));
@@ -4905,7 +4934,7 @@ function initVinoHome() {
         var miiDetModal = $(".miiverse-user-details")
 
         tvii.sendXHR("GET", "/api/v1/socials/getUserData/" + pid, function (data) {
-            var user_data = JSON.parse(data);
+            try { var user_data = JSON.parse(data); } catch (e) { return; }
 
             var img1 = $("<img>").attr("src", "/api/v1/miis.png?width=130&texResolution=128&expression=normal&data="
                 + encodeURIComponent(user_data.mii_data) + "&type=face").hide();
@@ -5556,7 +5585,7 @@ function initVinoHome() {
 
             var text = $(".miiverse-doodle-modal .comment textarea").val();
             if (!text || !text.length) {
-                alert(tvii.getLoc("vino.home.olv.crosspost.post.input_required"));
+                tvii.alert(tvii.getLoc("vino.home.olv.crosspost.post.input_required"));
                 disableTopBotHeaders(false);
                 $(this).removeClass("disabled");
                 return;
@@ -5684,7 +5713,7 @@ function initVinoHome() {
                 currentColor = custom;
                 erasing = false;
             } else {
-                alert(tvii.getLoc("vino.home.olv.crosspost.post.doodle_color_message"));
+                tvii.alert(tvii.getLoc("vino.home.olv.crosspost.post.doodle_color_message"));
             }
         });
 
@@ -5962,7 +5991,7 @@ function initVinoHome() {
             if (postType === "body") {
                 var text = miiverseModal.find(".textarea-text-input").val();
                 if (!text || !text.length) {
-                    alert(tvii.getLoc("vino.home.olv.crosspost.post.input_required"));
+                    tvii.alert(tvii.getLoc("vino.home.olv.crosspost.post.input_required"));
                     lockPostModal(false);
                     return;
                 }
@@ -5986,7 +6015,7 @@ function initVinoHome() {
                 //var painting = vino.memo_getImageTgaCompressed();
                 var painting = vino.memo_getImagePng();
                 if (!painting || !painting.length) {
-                    alert(tvii.getLoc("vino.home.olv.crosspost.post.memo_required"));
+                    tvii.alert(tvii.getLoc("vino.home.olv.crosspost.post.memo_required"));
                     lockPostModal(false);
                     return;
                 }
