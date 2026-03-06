@@ -11,11 +11,15 @@ import { logger } from "../../utils/logger.ts";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// optional custom font
-registerFont(
-    path.join(__dirname, "../../../static/font/nintendo_NTLGDB_001.ttf"),
-    { family: "nintendo" }
-);
+// optional custom font — wrapped in try/catch so a missing font doesn't crash the server
+try {
+    registerFont(
+        path.join(__dirname, "../../../static/font/nintendo_NTLGDB_001.ttf"),
+        { family: "nintendo" }
+    );
+} catch (err) {
+    logger.warn("Could not register custom font: %s", (err as Error).message);
+}
 
 const backgrounds = [
     path.join(__dirname, "../../../static/title/blue.png"),

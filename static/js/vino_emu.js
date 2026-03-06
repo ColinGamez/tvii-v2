@@ -1,9 +1,9 @@
 /* eslint-disable */
-let loadingCube = null;
-let loadingX = 0;
-let loadingY = 0;
-let loadingW = 0;
-let loadingH = 0;
+var loadingCube = null;
+var loadingX = 0;
+var loadingY = 0;
+var loadingW = 0;
+var loadingH = 0;
 if (typeof vino === "undefined") {
     // If not on a WiiU, emulate the Vino and WiiU Gamepad APIs.
     console.log("Initialize API emulation");
@@ -214,7 +214,7 @@ if (typeof vino === "undefined") {
                 document.body.appendChild(loadingCube);
 
                 // trigger fade-in
-                requestAnimationFrame(() => {
+                requestAnimationFrame(function () {
                     loadingCube.style.opacity = "1";
                 });
             } else {
@@ -222,7 +222,7 @@ if (typeof vino === "undefined") {
                 if (loadingCube.style.display === "none" || loadingCube.style.opacity === "0") {
                     loadingCube.style.display = "block";
                     loadingCube.style.transition = "opacity 0.1s ease"; // fade-in faster
-                    requestAnimationFrame(() => {
+                    requestAnimationFrame(function () {
                         loadingCube.style.opacity = "1";
                     });
                 }
@@ -232,7 +232,7 @@ if (typeof vino === "undefined") {
                 // fade out with slower speed
                 loadingCube.style.transition = "opacity 0.4s ease"; 
                 loadingCube.style.opacity = "0";
-                setTimeout(() => {
+                setTimeout(function () {
                     if (loadingCube) {
                         loadingCube.style.display = "none";
                     }
@@ -249,7 +249,7 @@ if (typeof vino === "undefined") {
         loadingCube.style.opacity = show ? "1" : "0";
         loadingCube.style.display = show ? "block" : "none";
         // restore transition defaults for appear
-        setTimeout(() => {
+        setTimeout(function () {
             if (loadingCube) {
                 loadingCube.style.transition = "opacity 0.2s ease"; // keep fade-in default
             }

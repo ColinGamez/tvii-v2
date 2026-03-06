@@ -113,28 +113,16 @@ router.get("/countries/:country/:zipcode", async (req: Request, res: Response) =
     try {
         // ── JP shortcut ──────────────────────────────────────
         if (country === "JP") {
-            const jpProviders: Provider[] = [];
-            if (env.VINO_JP_GGUIDE_ENABLED) {
-                jpProviders.push({
-                    type: "other",
-                    name: "G-Guide Japan",
-                    lineup_id: "gguide",
-                    tz_name: "Asia/Tokyo",
-                });
-            }
-            // Fallback: if G-Guide disabled, still offer it
-            if (jpProviders.length === 0) {
-                jpProviders.push({
-                    type: "other",
-                    name: "G-Guide Japan",
-                    lineup_id: "gguide",
-                    tz_name: "Asia/Tokyo",
-                });
-            }
+            // G-Guide is the only JP provider — always offered
             return res.status(200).json({
                 hasError: 0,
                 zipcode,
-                data: jpProviders,
+                data: [{
+                    type: "other" as const,
+                    name: "G-Guide Japan",
+                    lineup_id: "gguide",
+                    tz_name: "Asia/Tokyo",
+                }],
             });
         }
 
