@@ -145,7 +145,7 @@ router.get("/countries/:country/:zipcode", async (req: Request, res: Response) =
         }
 
         if (country !== "US" && country !== "CA") {
-            throw new Error("HTTP error!");
+            throw new Error(`Unsupported country for provider lookup: ${country}`);
         }
 
         const args = new URLSearchParams();
@@ -188,7 +188,12 @@ router.get("/countries/:country/:zipcode", async (req: Request, res: Response) =
                     const name = $(a).text().trim();
                     const href = $(a).attr("href") || "";
 
-                    const url = new URL(href);
+                    let url: URL;
+                    try {
+                        url = new URL(href);
+                    } catch {
+                        return; // skip malformed provider link
+                    }
 
                     const lineup_id = url.pathname.split("/set/")[1];
                     const tz = url.searchParams.get("tz");
@@ -471,6 +476,16 @@ async function getChannelScheduleByPath(
 
         const programs: Program[] = [];
 
+        function formatLocal(d: Date) {
+            const yyyy = d.getFullYear();
+            const mm = ("0" + (d.getMonth() + 1)).slice(-2);
+            const dd = ("0" + d.getDate()).slice(-2);
+            const hh = ("0" + d.getHours()).slice(-2);
+            const mi = ("0" + d.getMinutes()).slice(-2);
+            const ss = ("0" + d.getSeconds()).slice(-2);
+            return `${yyyy}-${mm}-${dd}T${hh}:${mi}:${ss}`;
+        }
+
         $(".list-group-item").each((_, el) => {
             const div = $(el);
 
@@ -480,16 +495,6 @@ async function getChannelScheduleByPath(
 
             const startDate = new Date(startStr.replace(" ", "T"));
             const endDate = new Date(startDate.getTime() + duration * 60 * 1000);
-
-            function formatLocal(d: Date) {
-                const yyyy = d.getFullYear();
-                const mm = ("0" + (d.getMonth() + 1)).slice(-2);
-                const dd = ("0" + d.getDate()).slice(-2);
-                const hh = ("0" + d.getHours()).slice(-2);
-                const mi = ("0" + d.getMinutes()).slice(-2);
-                const ss = ("0" + d.getSeconds()).slice(-2);
-                return `${yyyy}-${mm}-${dd}T${hh}:${mi}:${ss}`;
-            }
 
             const start = formatLocal(startDate);
             const end = formatLocal(endDate);
@@ -608,8 +613,9 @@ async function getShowDetails
         tz_name: string,
         country: string
     ) {
-    const key = makeProgramKey(program_url) as any;
-    const seriesId = getSeriesIdFromKey(key) as any;
+    const key = makeProgramKey(program_url);
+    if (!key) return null;
+    const seriesId = getSeriesIdFromKey(key);
 
     // 1️⃣ Redis cache lookup
     const cached = await redis.get(key);
@@ -1159,7 +1165,7 @@ router.get("/info", async (req: Request, res: Response) => {
                     String(tz_name),
                     String(country))
             } catch (e) {
-
+                logger.error("Failed to fetch show details: %s", (e as Error).message);
             }
         }
 

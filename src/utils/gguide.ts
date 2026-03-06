@@ -26,8 +26,6 @@ const GGUIDE_USER_AGENT =
 const GRID_CACHE_TTL = 30 * 60; // 30 minutes
 /** How long (seconds) to cache program detail pages in Redis */
 const DETAIL_CACHE_TTL = 24 * 60 * 60; // 24 hours
-/** How long (seconds) to keep a channel list */
-const CHANNEL_CACHE_TTL = 7 * 24 * 60 * 60; // 7 days
 
 // ── Types ────────────────────────────────────────────────────
 export interface GGuideChannel {
@@ -732,6 +730,13 @@ export function genreToShowTypeId(genreClass: string | null, genre: string | nul
             case "gc-sports": return "O";
             case "gc-music": return "W";
             case "gc-drama": return "1";
+            case "gc-news": return "Y";
+            case "gc-variety": return "6";
+            case "gc-documentary": return "D";
+            case "gc-hobby": return "6";      // Hobby/Leisure → Comedy/Variety bucket
+            case "gc-education": return "D";   // Education → Documentary bucket
+            case "gc-theater": return "1";     // Theater → Series bucket
+            case "gc-welfare": return "D";     // Welfare → Documentary bucket
         }
     }
 
