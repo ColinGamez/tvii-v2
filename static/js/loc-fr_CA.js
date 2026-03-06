@@ -192,4 +192,23 @@ tvii.locFile = {
     "vino.home.program.button.set_reminder": "Définir le rappel du programme",
     "vino.home.program.button.remove_reminder": "Supprimer le rappel",
     "vino.home.program.button.send_friend_rec": "Recommander à un ami",
+
+    "vino.menu.genre_search": "Recherche par genre",
+    "vino.genre.header": "Recherche par genre",
+    "vino.genre.anime": "Anime",
+    "vino.genre.drama": "Drame",
+    "vino.genre.sports": "Sports",
+    "vino.genre.movie": "Films",
+    "vino.genre.music": "Musique",
+    "vino.genre.variety": "Variétés",
+    "vino.genre.news": "Nouvelles",
+    "vino.genre.documentary": "Documentaire",
+    "vino.genre.hobby": "Loisirs",
+    "vino.genre.education": "Éducation",
+    "vino.genre.theater": "Théâtre",
+    "vino.genre.welfare": "Bien-être",
+    "vino.genre.results_count": "Résultats: %s éléments",
+    "vino.genre.no_results": "Aucun programme trouvé pour ce genre.",
+    "vino.genre.time_now": "En direct maintenant",
+    "vino.genre.time_starts": "Commence %s"
 }

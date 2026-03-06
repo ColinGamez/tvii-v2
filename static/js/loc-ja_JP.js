@@ -190,4 +190,23 @@ tvii.locFile = {
     "vino.home.program.button.set_reminder": "番組リマインダーを設定",
     "vino.home.program.button.remove_reminder": "リマインダーを解除",
     "vino.home.program.button.send_friend_rec": "フレンドにおすすめする",
+
+    "vino.menu.genre_search": "ジャンル検索",
+    "vino.genre.header": "ジャンルで検索",
+    "vino.genre.anime": "アニメ",
+    "vino.genre.drama": "ドラマ",
+    "vino.genre.sports": "スポーツ",
+    "vino.genre.movie": "映画",
+    "vino.genre.music": "音楽",
+    "vino.genre.variety": "バラエティ",
+    "vino.genre.news": "ニュース",
+    "vino.genre.documentary": "ドキュメンタリー",
+    "vino.genre.hobby": "趣味/実用",
+    "vino.genre.education": "教育",
+    "vino.genre.theater": "劇場/公演",
+    "vino.genre.welfare": "福祉",
+    "vino.genre.results_count": "検索結果: %s件",
+    "vino.genre.no_results": "このジャンルの番組は見つかりませんでした。",
+    "vino.genre.time_now": "放送中",
+    "vino.genre.time_starts": "%sに開始"
 }
