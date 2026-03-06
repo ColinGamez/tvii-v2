@@ -1,6 +1,6 @@
 <script>
     var lang = (vino.info_getLanguage() || "en").toLowerCase();
-    var version = "1.2.6"; // version string
+    var version = "<%= version %>"; // version string — injected from APP_VERSION
     var message = "";
 
     switch (lang) {

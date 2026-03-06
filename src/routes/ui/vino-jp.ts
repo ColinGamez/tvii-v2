@@ -211,7 +211,7 @@ router.get("/index.html", async (req: Request, res: Response): Promise<any> => {
 
 
 router.get("/manual", (_req: Request, res: Response) => {
-    res.sendFile(join(__dirname, "..", "..", "pages", "manual.html"));
+    res.sendFile(join(__dirname, "..", "..", "..", "pages", "manual.html"));
 });
 
 export { router as vinoRoute };

@@ -85,16 +85,9 @@ const middleware = async (
             "User has outdated Rose Patcher: %j", serviceToken);
         return res
             .contentType("text/html")
-            .sendFile(
-                join(
-                    __dirname,
-                    "..",
-                    "..",
-                    "pages",
-                    "error",
-                    "outdatedPlugin.html"
-                )
-            );
+            .render("error/outdatedPlugin", {
+                version: APP_VERSION.replace(/^v/, ""),
+            });
     }
 
     try {
