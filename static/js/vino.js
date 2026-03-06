@@ -2976,8 +2976,9 @@ function initVinoHome() {
         var chlogo = programDetails.find(".chlogo");
         chlogo.removeClass("no-icon");
 
-        if (program.attr("data-chlogo") && program.attr("data-chlogo") != "null") {
-            var logoSrc = "/images/cdn/tvp" + program.attr("data-chlogo");
+        var chlogoVal = program.attr("data-chlogo");
+        if (chlogoVal && chlogoVal !== "null" && chlogoVal !== "undefined") {
+            var logoSrc = "/images/cdn/tvp" + chlogoVal;
 
             // Replace the part between "station/" and "/v2" with "60x34"
             logoSrc = logoSrc.replace(/(station\/)[^\/]+(\/v2)/, '$160x34$2');
@@ -6405,8 +6406,9 @@ function initVinoHome() {
         chlogo.removeClass("no-icon");
 
         var logoSrc;
-        if (program.attr("data-chlogo") && program.attr("data-chlogo") != "null") {
-            logoSrc = "/images/cdn/tvp" + program.attr("data-chlogo");
+        var chlogoVal = program.attr("data-chlogo");
+        if (chlogoVal && chlogoVal !== "null" && chlogoVal !== "undefined") {
+            logoSrc = "/images/cdn/tvp" + chlogoVal;
             logoSrc = logoSrc.replace(/(station\/)[^\/]+(\/v2)/, '$160x34$2');
         } else {
             logoSrc = "/img/no-ch-logo.png";

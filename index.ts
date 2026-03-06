@@ -20,6 +20,11 @@ app.use((req, res, next) => {
     next();
 });
 
+// Health check — unauthenticated, lightweight (before auth middleware)
+app.get("/health", (_req: Request, res: Response) => {
+    res.status(200).json({ status: "ok" });
+});
+
 // Middleware
 app.use(access);
 app.use(express.json({ limit: "2mb" }));
@@ -62,11 +67,6 @@ app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
 
 process.on("unhandledRejection", (reason) => {
     logger.error("Unhandled rejection: %O", reason);
-});
-
-// Health check — unauthenticated, lightweight
-app.get("/health", (_req: Request, res: Response) => {
-    res.status(200).json({ status: "ok" });
 });
 
 // Starts the HTTP server (nginx handles TLS termination for Wii U compatibility)
