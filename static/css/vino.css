@@ -3581,7 +3581,7 @@ button {
     background-position: -50px 0px;
 }
 
-/* ── Genre Search ─────────────────────────────────────────── */
+/* -- Genre Search ------------------------------------------------- */
 
 .menu-modal .icon-genre {
     background-position: 0 -160px;
@@ -3610,10 +3610,10 @@ button {
     flex-wrap: wrap;
     -webkit-box-pack: center;
     justify-content: center;
-    gap: 10px;
 }
 
 .genre-tile {
+    margin: 5px;
     display: -webkit-box;
     -webkit-box-orient: vertical;
     -webkit-box-align: center;

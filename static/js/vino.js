@@ -6117,11 +6117,11 @@ function initVinoHome() {
 
     //---------------Tab functionality, Popstate functionality-----------------------
 
-    // ── Genre Search ──────────────────────────────────────────
+    // -- Genre Search -------------------------------------------------
     var genreSearchXhr = null;
     var genreSearchGenre = "";
     var genreSearchBroad = "all";
-    var genreSearchLimit = 20;
+    var genreSearchLimit = 10;
     var genreSearchOffset = 0;
     var genreSearchTotal = 0;
 
@@ -6496,7 +6496,7 @@ function initVinoHome() {
         });
     }
 
-    // ── End Genre Search ──────────────────────────────────────
+    // -- End Genre Search -------------------------------------------------
 
     function initLiveTab() {
         abortReqsXhr();
