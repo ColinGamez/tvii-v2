@@ -3605,11 +3605,7 @@ button {
     display: -webkit-box;
     -webkit-box-orient: horizontal;
     -webkit-box-lines: multiple;
-    display: flex;
-    -webkit-flex-wrap: wrap;
-    flex-wrap: wrap;
     -webkit-box-pack: center;
-    justify-content: center;
 }
 
 .genre-tile {
@@ -3618,13 +3614,6 @@ button {
     -webkit-box-orient: vertical;
     -webkit-box-align: center;
     -webkit-box-pack: center;
-    display: flex;
-    -webkit-flex-direction: column;
-    flex-direction: column;
-    -webkit-align-items: center;
-    align-items: center;
-    -webkit-justify-content: center;
-    justify-content: center;
     width: 140px;
     height: 90px;
     background: #fff;

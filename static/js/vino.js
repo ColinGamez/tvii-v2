@@ -854,7 +854,11 @@ var tvii = {
             "&limit=" + String(limit) +
             "&offset=" + String(offset),
             function (data) {
-                callbackSuccess(JSON.parse(data));
+                try {
+                    callbackSuccess(JSON.parse(data));
+                } catch (e) {
+                    if (callbackFailure) callbackFailure();
+                }
             }, callbackFailure);
     },
     getUtcOffset: function () {
@@ -2623,7 +2627,19 @@ function initVinoHome() {
             programEl.querySelector(".info .tag").textContent = "";
 
             var genreEl = programEl.querySelector(".genre");
-            genreEl.classList.remove("talk", "news", "movies", "sports", "family", "series", "comedy", "reality", "documentary", "lifestyle", "music", "special", "adult_animated");
+            genreEl.classList.remove("talk");
+            genreEl.classList.remove("news");
+            genreEl.classList.remove("movies");
+            genreEl.classList.remove("sports");
+            genreEl.classList.remove("family");
+            genreEl.classList.remove("series");
+            genreEl.classList.remove("comedy");
+            genreEl.classList.remove("reality");
+            genreEl.classList.remove("documentary");
+            genreEl.classList.remove("lifestyle");
+            genreEl.classList.remove("music");
+            genreEl.classList.remove("special");
+            genreEl.classList.remove("adult_animated");
 
             genreEl.querySelector("span").innerHTML = "";
 
@@ -6216,7 +6232,7 @@ function initVinoHome() {
     }
 
     function setGenreResultsData(resp) {
-        var result = resp.data;
+        var result = resp.data || [];
         var programs = document.querySelectorAll(
             ".program-list .contents > .program"
         );
@@ -6229,15 +6245,26 @@ function initVinoHome() {
 
         for (var i = 0; i < programs.length && i < result.length; i++) {
             var item = result[i];
+            if (!item || !item.channel || !item.programs || !item.programs[0]) continue;
             var channel = item.channel;
             var programEl = programs[i];
             var prg = item.programs[0];
 
             // Clear contents
             var genreEl = programEl.querySelector(".genre");
-            genreEl.classList.remove("talk", "news", "movies", "sports", "family",
-                "series", "comedy", "reality", "documentary", "lifestyle",
-                "music", "special", "adult_animated");
+            genreEl.classList.remove("talk");
+            genreEl.classList.remove("news");
+            genreEl.classList.remove("movies");
+            genreEl.classList.remove("sports");
+            genreEl.classList.remove("family");
+            genreEl.classList.remove("series");
+            genreEl.classList.remove("comedy");
+            genreEl.classList.remove("reality");
+            genreEl.classList.remove("documentary");
+            genreEl.classList.remove("lifestyle");
+            genreEl.classList.remove("music");
+            genreEl.classList.remove("special");
+            genreEl.classList.remove("adult_animated");
             genreEl.querySelector("span").innerHTML = "";
 
             // Set channel attrs (for channel filter)

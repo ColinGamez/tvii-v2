@@ -1331,6 +1331,9 @@ router.get("/genre-search", async (req: Request, res: Response) => {
 
         const allPrograms = await gguide.getAllPrograms();
         const channelMap = await gguide.getChannels();
+        if (!allPrograms || !channelMap) {
+            return res.status(503).json({ error: "EPG data not available yet" });
+        }
         const nowUtc = Math.floor(Date.now() / 1000);
 
         // Filter: matching genre, not ended, optionally by broadcast type
