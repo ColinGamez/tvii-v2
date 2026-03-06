@@ -846,6 +846,17 @@ var tvii = {
             callbackFailure
         );
     },
+    requestGenreSearch: function (genre, broad, limit, offset, callbackSuccess, callbackFailure) {
+        return tvii.sendXHRNoTimeout("GET",
+            "/api/v1/providers/genre-search" +
+            "?genre=" + encodeURIComponent(genre) +
+            "&broad=" + encodeURIComponent(broad) +
+            "&limit=" + String(limit) +
+            "&offset=" + String(offset),
+            function (data) {
+                callbackSuccess(JSON.parse(data));
+            }, callbackFailure);
+    },
     getUtcOffset: function () {
         return parseInt($("body").attr("data-utc-offset"));
     },
@@ -2023,6 +2034,9 @@ function initVinoHome() {
             case "guidetab":
                 onGuideTabPopstate(e);
                 break;
+            case "genresearch":
+                onGenreSearchPopstate(e);
+                break;
             default:
                 break;
         }
@@ -2285,6 +2299,10 @@ function initVinoHome() {
                 case "about":
                     menuModal.hide();
                     tvii.alert(tvii.getLoc("vino.menu.about.text"));
+                    break;
+                case "genre-search":
+                    menuModal.hide();
+                    initGenreSearchView();
                     break;
             }
         });
@@ -3890,6 +3908,7 @@ function initVinoHome() {
         disableTopBotHeaders(true);
         var isLiveTab = page === "livetab";
         var isGuideTab = page === "guidetab";
+        var isGenreSearch = page === "genresearch";
 
         det.hide();
 
@@ -3929,7 +3948,7 @@ function initVinoHome() {
                 },
                 hdrAnimSp - 100,
                 function () {
-                    if (isLiveTab) {
+                    if (isLiveTab || isGenreSearch) {
                         cent.show();
                         $(".program-list .content").scrollTop(programListScroll);
                         drawLyt();
@@ -6098,6 +6117,387 @@ function initVinoHome() {
 
     //---------------Tab functionality, Popstate functionality-----------------------
 
+    // ── Genre Search ──────────────────────────────────────────
+    var genreSearchXhr = null;
+    var genreSearchGenre = "";
+    var genreSearchBroad = "all";
+    var genreSearchLimit = 20;
+    var genreSearchOffset = 0;
+    var genreSearchTotal = 0;
+
+    function initGenreSearchView() {
+        abortReqsXhr();
+        if (genreSearchXhr) { genreSearchXhr.abort(); genreSearchXhr = null; }
+        clearInterval(miiUserDetailInterval);
+        miiUserDetailInterval = null;
+        disableTopBotHeaders(true);
+        tvii.pushStateWithQuery("scene", "genresearch", false);
+        showMiiversePostPreview(false);
+        $(".guide-view").hide();
+        $(".footer .bottom").removeClass("guideopt");
+        $(".program-central").show();
+
+        // Show genre grid
+        $(".program-central").html($("#template-genre-grid").html());
+        tvii.templates.setUpLocHTML();
+
+        // Deselect header tabs
+        $(".header .tabs>a").removeClass("selected");
+
+        $(".genre-tile").on("click", function () {
+            vino.lyt_startTouchEffect();
+            vino.soundPlayVolume("SE_WAVE_BTN_DECIDE", 30);
+            var genre = $(this).attr("data-genre");
+            genreSearchGenre = genre;
+            genreSearchBroad = "all";
+            genreSearchOffset = 0;
+            loadGenreResults();
+        });
+
+        footer.scrollTop(footer[0].scrollHeight);
+        vino.requestGarbageCollect();
+        disableTopBotHeaders(false);
+        drawLyt();
+    }
+
+    function loadGenreResults() {
+        if (genreSearchXhr) { genreSearchXhr.abort(); genreSearchXhr = null; }
+        disableTopBotHeaders(true);
+
+        $(".program-central").html($("#template-genre-results").html());
+        tvii.templates.setUpLocHTML();
+        $(".program-list .content").hide();
+
+        vino.loading_setIconRect(360, 160, 120, 120);
+        vino.loading_setIconAppear(true);
+
+        genreSearchXhr = tvii.requestGenreSearch(
+            genreSearchGenre,
+            genreSearchBroad,
+            genreSearchLimit,
+            genreSearchOffset,
+            function (resp) {
+                genreSearchTotal = resp.total;
+
+                // Update result count
+                $(".genre-results-count").text(
+                    tvii.getLoc("vino.genre.results_count", resp.total)
+                );
+
+                if (resp.total === 0) {
+                    $(".genre-results-count").text(
+                        tvii.getLoc("vino.genre.no_results")
+                    );
+                }
+
+                // Populate program cards
+                setGenreResultsData(resp);
+                setUpTitleScrollbar(genreResultPreview, genreResultConfirm);
+                window.setListenerToProgram();
+                setupGenreResultsPagination();
+                setupGenreChannelFilter();
+                vino.loading_setIconAppear(false);
+
+                setTimeout(function () {
+                    var first = $(".program-list .content .program").first();
+                    currentSnappedElement = first.get(0);
+                    genreResultPreview(first);
+                }, 0);
+
+                drawLyt();
+                disableTopBotHeaders(false);
+                $(".program-list .content").show();
+            },
+            function () {
+                disableTopBotHeaders(false);
+                vino.loading_setIconAppear(false);
+            }
+        );
+    }
+
+    function setGenreResultsData(resp) {
+        var result = resp.data;
+        var programs = document.querySelectorAll(
+            ".program-list .contents > .program"
+        );
+        var nowTimestamp = ((Date.now() / 1000) | 0) + tvii.getUtcOffset();
+
+        // Reset all
+        for (var k = 0; k < programs.length; k++) {
+            programs[k].style.display = "";
+        }
+
+        for (var i = 0; i < programs.length && i < result.length; i++) {
+            var item = result[i];
+            var channel = item.channel;
+            var programEl = programs[i];
+            var prg = item.programs[0];
+
+            // Clear contents
+            var genreEl = programEl.querySelector(".genre");
+            genreEl.classList.remove("talk", "news", "movies", "sports", "family",
+                "series", "comedy", "reality", "documentary", "lifestyle",
+                "music", "special", "adult_animated");
+            genreEl.querySelector("span").innerHTML = "";
+
+            // Set channel attrs (for channel filter)
+            programEl.setAttribute("data-chname", channel.name);
+            programEl.setAttribute("data-chcsign", channel.callsign);
+            programEl.setAttribute("data-chlogo", channel.logo);
+            programEl.setAttribute("data-chnum", channel.number);
+            programEl.setAttribute("data-chstat", channel.station);
+            programEl.setAttribute("data-churl", channel.url);
+
+            // Set program attrs
+            programEl.setAttribute("data-prlistid-1", prg.listingId);
+            programEl.setAttribute("data-prname-1", prg.showName);
+            programEl.setAttribute("data-prlive-1", prg.isLive);
+            programEl.setAttribute("data-prnew-1", prg.isNew);
+            programEl.setAttribute("data-prtype-1", prg.showTypeID);
+            programEl.setAttribute("data-prrating-1", prg.rating);
+            programEl.setAttribute("data-prstart-1", prg.start);
+            programEl.setAttribute("data-prend-1", prg.end);
+            programEl.setAttribute("data-active-index", "1");
+
+            // Remove leftover schedule attributes
+            var ai = 2;
+            while (programEl.hasAttribute("data-prlistid-" + ai)) {
+                programEl.removeAttribute("data-prlistid-" + ai);
+                programEl.removeAttribute("data-prname-" + ai);
+                programEl.removeAttribute("data-prlive-" + ai);
+                programEl.removeAttribute("data-prnew-" + ai);
+                programEl.removeAttribute("data-prtype-" + ai);
+                programEl.removeAttribute("data-prrating-" + ai);
+                programEl.removeAttribute("data-prstart-" + ai);
+                programEl.removeAttribute("data-prend-" + ai);
+                ai++;
+            }
+
+            // Directly set display text (don't rely on updateTabListProgram)
+            var namSpan = programEl.querySelector(".station .nam");
+            var numSpan = programEl.querySelector(".station .num");
+            var titleSpan = programEl.querySelector(".title");
+            var tag = programEl.querySelector(".info .tag");
+            var txt = programEl.querySelector(".info .text");
+
+            if (namSpan) namSpan.textContent = channel.name;
+            if (numSpan) numSpan.textContent = channel.number;
+            if (titleSpan) titleSpan.textContent = prg.showName;
+
+            // Genre badge
+            var genreIDText = tvii.getProgramGenre(prg.showTypeID, prg.rating);
+            genreEl.classList.add(genreIDText);
+            genreEl.querySelector("span").innerHTML = tvii.getLoc("vino.home.genre." + genreIDText);
+
+            // Time info
+            var startSec = tvii.parseLocalDateTime(prg.start);
+            var endSec = tvii.parseLocalDateTime(prg.end);
+
+            if (tag) {
+                tag.className = "tag";
+                if (prg.isLive) {
+                    tag.className += " tagl";
+                    tag.textContent = tvii.getLoc("vino.home.lst.live");
+                    tag.style.display = "";
+                } else {
+                    tag.textContent = "";
+                    tag.style.display = "none";
+                }
+            }
+
+            if (txt) {
+                if (nowTimestamp >= startSec && nowTimestamp < endSec) {
+                    var elapsed = nowTimestamp - startSec;
+                    txt.textContent = computeLiveInfoText(elapsed);
+                } else if (startSec > nowTimestamp) {
+                    txt.textContent = formatGenreStartTime(startSec, nowTimestamp);
+                } else {
+                    txt.textContent = "";
+                }
+            }
+        }
+
+        // Hide unused
+        for (var l = result.length; l < programs.length; l++) {
+            programs[l].style.display = "none";
+        }
+    }
+
+    function formatGenreStartTime(startSec, nowSec) {
+        var d = new Date(startSec * 1000);
+        var h = d.getUTCHours();
+        var m = d.getUTCMinutes();
+        var timeStr = (h < 10 ? "0" + h : h) + ":" + (m < 10 ? "0" + m : m);
+        return tvii.getLoc("vino.genre.time_starts", timeStr);
+    }
+
+    function genreResultPreview(program) {
+        var programDetails = $(".program-central .program-details");
+        program = $(program);
+
+        var activeIndex = program.attr("data-active-index");
+        if (!activeIndex) return;
+
+        var programId = program.attr("data-prlistid-" + activeIndex);
+        var channelNum = program.attr("data-chnum");
+
+        var lastProgramId = programDetails.attr("data-prlistid");
+        var lastChannelNum = programDetails.attr("data-chnum");
+        if (lastProgramId === programId && lastChannelNum === channelNum) return;
+
+        var chlogo = programDetails.find(".chlogo");
+        chlogo.removeClass("no-icon");
+
+        var logoSrc;
+        if (program.attr("data-chlogo") && program.attr("data-chlogo") != "null") {
+            logoSrc = "/images/cdn/tvp" + program.attr("data-chlogo");
+            logoSrc = logoSrc.replace(/(station\/)[^\/]+(\/v2)/, '$160x34$2');
+        } else {
+            logoSrc = "/img/no-ch-logo.png";
+            chlogo.addClass("no-icon");
+        }
+
+        chlogo.off("error").on("error", function () { chlogo.hide(); });
+
+        if (progPrevReq) { progPrevReq.abort(); progPrevReq = null; }
+
+        programDetails.hide();
+        programDetails.find(".program-airing-details").hide();
+        programDetails.find(".program-airing-image").hide();
+        vino.loading_setIconRect(165, 180, 110, 110);
+        vino.loading_setIconAppear(true);
+        chlogo.show();
+        chlogo.attr("src", logoSrc);
+
+        progPrevReq = tvii.requestProgramDetails(
+            programId,
+            channelNum,
+            null,
+            function (details) {
+                programDetails.attr("data-prlistid", programId);
+                programDetails.attr("data-chnum", channelNum);
+
+                var pname = programDetails.find(".pname");
+                var pepisode = programDetails.find(".pepisode");
+                var chnumEl = programDetails.find(".chnum");
+                var pdesc = programDetails.find(".program-description p");
+                var pimg = programDetails.find(".program-airing-image .img");
+
+                pname.text(details.program.showName || "");
+                pepisode.text(details.program.episodeTitle || "");
+                chnumEl.text(program.attr("data-chname") || "");
+
+                pdesc.text(details.program.description || "");
+
+                if (details.program.showPicture) {
+                    pimg.css("background-image", "url(" + details.program.showPicture + ")");
+                    programDetails.find(".program-airing-image").show();
+                }
+
+                programDetails.find(".program-airing-details").show();
+                programDetails.show();
+                vino.loading_setIconAppear(false);
+            },
+            function () {
+                // Fallback: show basic info from data attrs
+                programDetails.attr("data-prlistid", programId);
+                programDetails.attr("data-chnum", channelNum);
+
+                programDetails.find(".pname").text(program.attr("data-prname-" + activeIndex) || "");
+                programDetails.find(".pepisode").text("");
+                programDetails.find(".chnum").text(program.attr("data-chname") || "");
+                programDetails.find(".program-description p").text("");
+                programDetails.find(".program-airing-details").show();
+                programDetails.show();
+                vino.loading_setIconAppear(false);
+            }
+        );
+    }
+
+    function genreResultConfirm(program, isTriggered) {
+        var programDetails = $(".program-central .program-details");
+        if (!programDetails.is(":visible")) return;
+        if (!isTriggered) {
+            vino.lyt_startTouchEffect();
+        }
+        vino.soundPlayVolume("SE_APPEAR_DETAIL", 30);
+        vino.lyt_decideFixedFrame();
+        setupProgramPageWithAnimFromList();
+    }
+
+    function setupGenreResultsPagination() {
+        $(".pagi-menu .prev, .pagi-menu .next").off("click").on("click", function () {
+            if (isHeaderButtonBlocked) return;
+            var isPrev = $(this).hasClass("prev");
+            var isNext = $(this).hasClass("next");
+
+            if (isPrev && genreSearchOffset === 0) return;
+            if (isNext && genreSearchOffset + genreSearchLimit >= genreSearchTotal) return;
+
+            vino.soundPlayVolume("SE_PROGRAM_SLIDE_SPEED", 30);
+
+            if (isPrev) {
+                genreSearchOffset = Math.max(0, genreSearchOffset - genreSearchLimit);
+            } else {
+                genreSearchOffset = genreSearchOffset + genreSearchLimit;
+            }
+
+            loadGenreResults();
+        });
+
+        updateGenrePagiState();
+    }
+
+    function updateGenrePagiState() {
+        var $prev = $(".pagi-menu .prev");
+        var $next = $(".pagi-menu .next");
+        var $counter = $(".pagi-menu > span");
+
+        var totalPages = Math.max(1, Math.ceil(genreSearchTotal / genreSearchLimit));
+        var currentPage = Math.floor(genreSearchOffset / genreSearchLimit) + 1;
+
+        $counter.html(currentPage + "<span>/" + totalPages + "</span>");
+
+        if (genreSearchOffset === 0) {
+            $prev.addClass("disabled");
+        } else {
+            $prev.removeClass("disabled");
+        }
+
+        if (genreSearchOffset + genreSearchLimit >= genreSearchTotal) {
+            $next.addClass("disabled");
+        } else {
+            $next.removeClass("disabled");
+        }
+    }
+
+    function setupGenreChannelFilter() {
+        if (tvii.getCountry() !== "JP") return;
+        var $filterBar = $(".channel-filter");
+        $filterBar.show();
+
+        // Set initial active state
+        $filterBar.find(".chf-btn").removeClass("active");
+        $filterBar.find('.chf-btn[data-filter="' + genreSearchBroad + '"]').addClass("active");
+
+        $filterBar.find(".chf-btn").off("click").on("click", function () {
+            if (isHeaderButtonBlocked) return;
+            var $btn = $(this);
+            if ($btn.hasClass("active")) return;
+
+            vino.soundPlayVolume("SE_WAVE_OK_SUB", 30);
+
+            $filterBar.find(".chf-btn").removeClass("active");
+            $btn.addClass("active");
+
+            genreSearchBroad = $btn.attr("data-filter") || "all";
+            genreSearchOffset = 0;
+            loadGenreResults();
+        });
+    }
+
+    // ── End Genre Search ──────────────────────────────────────
+
     function initLiveTab() {
         abortReqsXhr();
         clearInterval(miiUserDetailInterval);
@@ -6644,6 +7044,15 @@ function initVinoHome() {
             closeProgramPageWithAnim("livetab");
         } else if (canMiiverseViewBeSeen) {
             closeMiiversePageWithAnim("livetab");
+        }
+    }
+
+    function onGenreSearchPopstate(e) {
+        var canProgramDetailsBeSeen = $(".program-fulldetails-page").is(
+            ":visible"
+        );
+        if (canProgramDetailsBeSeen) {
+            closeProgramPageWithAnim("genresearch");
         }
     }
 

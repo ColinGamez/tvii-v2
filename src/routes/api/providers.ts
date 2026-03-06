@@ -1313,6 +1313,96 @@ router.get("/kodi/mapping", async (_req: Request, res: Response) => {
     }
 });
 
+// ── Genre search (JP G-Guide only) ──────────────────────────
+router.get("/genre-search", async (req: Request, res: Response) => {
+    try {
+        if (!env.VINO_JP_GGUIDE_ENABLED) {
+            return res.status(404).json({ error: "G-Guide not enabled" });
+        }
+
+        const genre = String(req.query.genre || "");
+        const broad = String(req.query.broad || "all");       // all | dt | bs | cs
+        const limitNum = Math.min(Math.max(parseInt(String(req.query.limit), 10) || 20, 1), 100);
+        const offsetNum = Math.max(parseInt(String(req.query.offset), 10) || 0, 0);
+
+        if (!genre) {
+            return res.status(400).json({ error: "Missing genre parameter" });
+        }
+
+        const allPrograms = await gguide.getAllPrograms();
+        const channelMap = await gguide.getChannels();
+        const nowUtc = Math.floor(Date.now() / 1000);
+
+        // Filter: matching genre, not ended, optionally by broadcast type
+        const matched = allPrograms.filter((p) => {
+            if (p.genreClass !== genre) return false;
+            if (p.endUtc <= nowUtc) return false;
+            if (broad !== "all") {
+                const ch = channelMap.get(p.channelId);
+                if (!ch || ch.broad !== broad) return false;
+            }
+            return true;
+        });
+
+        // Sort: currently airing first, then by start time ascending
+        matched.sort((a, b) => {
+            const aLive = a.startUtc <= nowUtc && a.endUtc > nowUtc ? 0 : 1;
+            const bLive = b.startUtc <= nowUtc && b.endUtc > nowUtc ? 0 : 1;
+            if (aLive !== bLive) return aLive - bLive;
+            return a.startUtc - b.startUtc;
+        });
+
+        const total = matched.length;
+        const page = matched.slice(offsetNum, offsetNum + limitNum);
+
+        // Map each program to the standard {channel, programs} format
+        const data = page.map((p) => {
+            const ch = channelMap.get(p.channelId);
+            const channel = ch
+                ? { id: ch.id, station: ch.id, callsign: ch.name, number: ch.number, name: ch.name, logo: ch.logo, url: ch.id }
+                : { id: p.channelId, station: p.channelId, callsign: "", number: "", name: "", logo: null, url: p.channelId };
+
+            return {
+                channel,
+                programs: [{
+                    start: p.startJst,
+                    end: p.endJst,
+                    duration: Math.round((p.endUtc - p.startUtc) / 60),
+                    showName: p.title,
+                    episodeTitle: null,
+                    description: p.description,
+                    showType: p.genre ?? "Series",
+                    showTypeID: gguide.genreToShowTypeId(p.genreClass, p.genre, p.title),
+                    rating: null,
+                    year: null,
+                    listingId: p.listingId,
+                    url: null,
+                    guests: null,
+                    showId: p.listingId,
+                    seriesId: p.channelId,
+                    showPicture: null,
+                    isLive: p.startUtc <= nowUtc && p.endUtc > nowUtc,
+                    isNew: false,
+                    isCC: false,
+                    teamInfo: null,
+                }],
+            };
+        });
+
+        return res.status(200).json({
+            genre,
+            broad,
+            total,
+            limit: limitNum,
+            offset: offsetNum,
+            data,
+        });
+    } catch (err: any) {
+        logger.error("Genre search error: %s", err.message);
+        return res.status(500).json({ error: err?.message ?? "Genre search failed" });
+    }
+});
+
 // ── Force-refresh EPG data ──────────────────────────────────
 router.post("/epg/refresh", async (_req: Request, res: Response) => {
     try {

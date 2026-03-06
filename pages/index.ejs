@@ -4,7 +4,7 @@
 <head>
   <title>Nintendo TVii</title>
   <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
-  <link href="/css/vino.css?v=20" rel="stylesheet" />
+  <link href="/css/vino.css?v=21" rel="stylesheet" />
   <script>
     function handleScriptError(scriptName) {
       alert("Error !!!:" + scriptName);
@@ -14,7 +14,7 @@
     }
   </script>
   <script src="/js/jquery-3.7.1.min.js" onerror="handleScriptError('jquery-3.7.1.min.js')"></script>
-  <script src="/js/vino.js?v=20" onerror="handleScriptError('vino.js')"></script>
+  <script src="/js/vino.js?v=21" onerror="handleScriptError('vino.js')"></script>
   <%- include('partials/locale-script', { lang }) %>
 
 </head>
@@ -171,6 +171,12 @@
             <a href="javascript:void(0)" navi_target class="menu-item" data-action="manual">
               <span class="menu-icon icon-manual"></span>
               <span class="menu-label" data-loc="vino.menu.manual"></span>
+            </a>
+          </li>
+          <li>
+            <a href="javascript:void(0)" navi_target class="menu-item" data-action="genre-search">
+              <span class="menu-icon icon-genre"></span>
+              <span class="menu-label" data-loc="vino.menu.genre_search"></span>
             </a>
           </li>
           <li>
@@ -1008,6 +1014,137 @@
     </div>
 
 </script>
+
+  <script type="text/template" id="template-genre-grid">
+    <div class="genre-grid">
+      <div class="genre-grid-header">
+        <span data-loc="vino.genre.header"></span>
+      </div>
+      <div class="genre-grid-items">
+        <a href="javascript:void(0)" class="genre-tile" data-genre="gc-anime">
+          <div class="genre-tile-icon family"></div>
+          <span data-loc="vino.genre.anime"></span>
+        </a>
+        <a href="javascript:void(0)" class="genre-tile" data-genre="gc-drama">
+          <div class="genre-tile-icon series"></div>
+          <span data-loc="vino.genre.drama"></span>
+        </a>
+        <a href="javascript:void(0)" class="genre-tile" data-genre="gc-sports">
+          <div class="genre-tile-icon sports"></div>
+          <span data-loc="vino.genre.sports"></span>
+        </a>
+        <a href="javascript:void(0)" class="genre-tile" data-genre="gc-movie">
+          <div class="genre-tile-icon movies"></div>
+          <span data-loc="vino.genre.movie"></span>
+        </a>
+        <a href="javascript:void(0)" class="genre-tile" data-genre="gc-music">
+          <div class="genre-tile-icon music"></div>
+          <span data-loc="vino.genre.music"></span>
+        </a>
+        <a href="javascript:void(0)" class="genre-tile" data-genre="gc-variety">
+          <div class="genre-tile-icon comedy"></div>
+          <span data-loc="vino.genre.variety"></span>
+        </a>
+        <a href="javascript:void(0)" class="genre-tile" data-genre="gc-news">
+          <div class="genre-tile-icon news"></div>
+          <span data-loc="vino.genre.news"></span>
+        </a>
+        <a href="javascript:void(0)" class="genre-tile" data-genre="gc-documentary">
+          <div class="genre-tile-icon documentary"></div>
+          <span data-loc="vino.genre.documentary"></span>
+        </a>
+        <a href="javascript:void(0)" class="genre-tile" data-genre="gc-hobby">
+          <div class="genre-tile-icon lifestyle"></div>
+          <span data-loc="vino.genre.hobby"></span>
+        </a>
+        <a href="javascript:void(0)" class="genre-tile" data-genre="gc-education">
+          <div class="genre-tile-icon documentary"></div>
+          <span data-loc="vino.genre.education"></span>
+        </a>
+        <a href="javascript:void(0)" class="genre-tile" data-genre="gc-theater">
+          <div class="genre-tile-icon special"></div>
+          <span data-loc="vino.genre.theater"></span>
+        </a>
+        <a href="javascript:void(0)" class="genre-tile" data-genre="gc-welfare">
+          <div class="genre-tile-icon documentary"></div>
+          <span data-loc="vino.genre.welfare"></span>
+        </a>
+      </div>
+    </div>
+  </script>
+
+  <script type="text/template" id="template-genre-results">
+    <div class="program-list genre-results-list">
+      <div class="scrollbar">
+        <div class="track"></div>
+        <div class="thumb"></div>
+      </div>
+      <div class="content">
+        <div class="genre-results-header">
+          <span class="genre-results-count"></span>
+        </div>
+
+        <div class="channel-filter" style="display:none">
+          <a href="javascript:void(0)" class="chf-btn chf-all active" data-filter="all" data-loc="vino.home.filter.all"></a>
+          <a href="javascript:void(0)" class="chf-btn chf-dt" data-filter="dt" data-loc="vino.home.filter.dt"></a>
+          <a href="javascript:void(0)" class="chf-btn chf-bs" data-filter="bs" data-loc="vino.home.filter.bs"></a>
+          <a href="javascript:void(0)" class="chf-btn chf-cs" data-filter="cs" data-loc="vino.home.filter.cs"></a>
+        </div>
+
+        <div class="contents">
+          <a href="javascript:void(0)" class="program"><div class="genre"><span></span></div><span class="station"><span class="num"></span><span class="nam"></span></span><span class="title"></span><span class="info"><span class="tag" style="display:none"></span><span class="text"></span></span></a>
+          <a href="javascript:void(0)" class="program"><div class="genre"><span></span></div><span class="station"><span class="num"></span><span class="nam"></span></span><span class="title"></span><span class="info"><span class="tag" style="display:none"></span><span class="text"></span></span></a>
+          <a href="javascript:void(0)" class="program"><div class="genre"><span></span></div><span class="station"><span class="num"></span><span class="nam"></span></span><span class="title"></span><span class="info"><span class="tag" style="display:none"></span><span class="text"></span></span></a>
+          <a href="javascript:void(0)" class="program"><div class="genre"><span></span></div><span class="station"><span class="num"></span><span class="nam"></span></span><span class="title"></span><span class="info"><span class="tag" style="display:none"></span><span class="text"></span></span></a>
+          <a href="javascript:void(0)" class="program"><div class="genre"><span></span></div><span class="station"><span class="num"></span><span class="nam"></span></span><span class="title"></span><span class="info"><span class="tag" style="display:none"></span><span class="text"></span></span></a>
+          <a href="javascript:void(0)" class="program"><div class="genre"><span></span></div><span class="station"><span class="num"></span><span class="nam"></span></span><span class="title"></span><span class="info"><span class="tag" style="display:none"></span><span class="text"></span></span></a>
+          <a href="javascript:void(0)" class="program"><div class="genre"><span></span></div><span class="station"><span class="num"></span><span class="nam"></span></span><span class="title"></span><span class="info"><span class="tag" style="display:none"></span><span class="text"></span></span></a>
+          <a href="javascript:void(0)" class="program"><div class="genre"><span></span></div><span class="station"><span class="num"></span><span class="nam"></span></span><span class="title"></span><span class="info"><span class="tag" style="display:none"></span><span class="text"></span></span></a>
+          <a href="javascript:void(0)" class="program"><div class="genre"><span></span></div><span class="station"><span class="num"></span><span class="nam"></span></span><span class="title"></span><span class="info"><span class="tag" style="display:none"></span><span class="text"></span></span></a>
+          <a href="javascript:void(0)" class="program"><div class="genre"><span></span></div><span class="station"><span class="num"></span><span class="nam"></span></span><span class="title"></span><span class="info"><span class="tag" style="display:none"></span><span class="text"></span></span></a>
+          <a href="javascript:void(0)" class="program"><div class="genre"><span></span></div><span class="station"><span class="num"></span><span class="nam"></span></span><span class="title"></span><span class="info"><span class="tag" style="display:none"></span><span class="text"></span></span></a>
+          <a href="javascript:void(0)" class="program"><div class="genre"><span></span></div><span class="station"><span class="num"></span><span class="nam"></span></span><span class="title"></span><span class="info"><span class="tag" style="display:none"></span><span class="text"></span></span></a>
+          <a href="javascript:void(0)" class="program"><div class="genre"><span></span></div><span class="station"><span class="num"></span><span class="nam"></span></span><span class="title"></span><span class="info"><span class="tag" style="display:none"></span><span class="text"></span></span></a>
+          <a href="javascript:void(0)" class="program"><div class="genre"><span></span></div><span class="station"><span class="num"></span><span class="nam"></span></span><span class="title"></span><span class="info"><span class="tag" style="display:none"></span><span class="text"></span></span></a>
+          <a href="javascript:void(0)" class="program"><div class="genre"><span></span></div><span class="station"><span class="num"></span><span class="nam"></span></span><span class="title"></span><span class="info"><span class="tag" style="display:none"></span><span class="text"></span></span></a>
+          <a href="javascript:void(0)" class="program"><div class="genre"><span></span></div><span class="station"><span class="num"></span><span class="nam"></span></span><span class="title"></span><span class="info"><span class="tag" style="display:none"></span><span class="text"></span></span></a>
+          <a href="javascript:void(0)" class="program"><div class="genre"><span></span></div><span class="station"><span class="num"></span><span class="nam"></span></span><span class="title"></span><span class="info"><span class="tag" style="display:none"></span><span class="text"></span></span></a>
+          <a href="javascript:void(0)" class="program"><div class="genre"><span></span></div><span class="station"><span class="num"></span><span class="nam"></span></span><span class="title"></span><span class="info"><span class="tag" style="display:none"></span><span class="text"></span></span></a>
+          <a href="javascript:void(0)" class="program"><div class="genre"><span></span></div><span class="station"><span class="num"></span><span class="nam"></span></span><span class="title"></span><span class="info"><span class="tag" style="display:none"></span><span class="text"></span></span></a>
+          <a href="javascript:void(0)" class="program"><div class="genre"><span></span></div><span class="station"><span class="num"></span><span class="nam"></span></span><span class="title"></span><span class="info"><span class="tag" style="display:none"></span><span class="text"></span></span></a>
+        </div>
+
+        <div class="pagi-menu">
+          <a href="javascript:void(0)" class="prev disabled"></a>
+          <span>1<span>/1</span></span>
+          <a href="javascript:void(0)" class="next disabled"></a>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="program-info">
+      <div class="program-details" style="display: none">
+        <div class="program-airing-image" style="display: none">
+          <div class="img"></div>
+        </div>
+        <div class="program-airing-details" style="display: none">
+          <div class="program-airing">
+            <span class="date"></span>
+            <div class="channel-detail">
+              <img class="chlogo" src="/img/noimg.png" />
+              <span class="pname"></span>
+              <span class="pepisode"></span>
+              <span class="chnum"></span>
+            </div>
+          </div>
+          <div class="program-description">
+            <p></p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </script>
 
 
 </body>

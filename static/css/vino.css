@@ -3580,3 +3580,129 @@ button {
     left: auto;
     background-position: -50px 0px;
 }
+
+/* ── Genre Search ─────────────────────────────────────────── */
+
+.menu-modal .icon-genre {
+    background-position: 0 -160px;
+    opacity: 0.8;
+}
+
+.genre-grid {
+    padding: 20px 30px;
+}
+
+.genre-grid-header {
+    text-align: center;
+    font-size: 20px;
+    color: #444;
+    padding-bottom: 16px;
+    border-bottom: 1px solid #d0d0d0;
+    margin-bottom: 16px;
+}
+
+.genre-grid-items {
+    display: -webkit-box;
+    -webkit-box-orient: horizontal;
+    -webkit-box-lines: multiple;
+    display: flex;
+    -webkit-flex-wrap: wrap;
+    flex-wrap: wrap;
+    -webkit-box-pack: center;
+    justify-content: center;
+    gap: 10px;
+}
+
+.genre-tile {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-box-align: center;
+    -webkit-box-pack: center;
+    display: flex;
+    -webkit-flex-direction: column;
+    flex-direction: column;
+    -webkit-align-items: center;
+    align-items: center;
+    -webkit-justify-content: center;
+    justify-content: center;
+    width: 140px;
+    height: 90px;
+    background: #fff;
+    border: 1px solid #ccc;
+    -webkit-border-radius: 10px;
+    border-radius: 10px;
+    text-decoration: none;
+    color: #333;
+    font-size: 14px;
+    -webkit-transition: background 0.15s;
+    transition: background 0.15s;
+    -webkit-box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.15);
+    box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.15);
+}
+
+.genre-tile:hover,
+.genre-tile.hover {
+    background: #e8f0fb;
+    border-color: #4a90d9;
+}
+
+.genre-tile:active {
+    background: #d0e2f5;
+}
+
+.genre-tile-icon {
+    width: 42px;
+    height: 32px;
+    margin-bottom: 6px;
+    background: url(/img/prg_type_sprite.png) no-repeat;
+    -webkit-background-size: 126px 96px;
+    background-size: 126px 96px;
+    background-position: -0px -32px;
+}
+
+.genre-tile-icon.news {
+    background-position: -42px -64px;
+}
+
+.genre-tile-icon.movies {
+    background-position: -0px -0px;
+}
+
+.genre-tile-icon.sports {
+    background-position: -42px -0px;
+}
+
+.genre-tile-icon.music,
+.genre-tile-icon.lifestyle {
+    background-position: -84px -0px;
+}
+
+.genre-tile-icon.comedy,
+.genre-tile-icon.special {
+    background-position: -84px -32px;
+}
+
+.genre-tile-icon.documentary {
+    background-position: -0px -64px;
+}
+
+.genre-tile-icon.family {
+    background-position: -84px -64px;
+}
+
+.genre-tile-icon.series {
+    background-position: -0px -32px;
+}
+
+.genre-results-header {
+    text-align: center;
+    padding: 6px 0 4px;
+    font-size: 15px;
+    color: #555;
+    background: rgba(240, 240, 240, 0.7);
+    border-bottom: 1px solid #d0d0d0;
+}
+
+.genre-results-count {
+    font-weight: bold;
+}
