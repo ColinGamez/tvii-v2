@@ -9,6 +9,7 @@ import { BskyClient } from "../../utils/bsky.ts";
 import { env } from "../../env.ts";
 import { encrypt, decrypt } from "../../utils/crypto.ts";
 import { logger } from "../../utils/logger.ts";
+import { getClientIp } from "../../utils/other.ts";
 
 const isDev = ["dev", "stg"].includes(
     (process.env.VINO_JP_CONFIG_ENV ?? "dev").toLowerCase()
@@ -153,20 +154,7 @@ router.post(
             const tvProviderTzChosen = data.tv_provider_tz;
 
             // Extract the user's IP
-            let ip =
-                req.headers["cf-connecting-ip"] ||
-                req.headers["x-forwarded-for"] ||
-                req.ip;
-
-            // If x-forwarded-for contains multiple IPs, take the first
-            if (typeof ip === "string" && ip.includes(",")) {
-                ip = ip.split(",")[0]!.trim();
-            }
-
-            // Strip IPv6 prefix
-            if (typeof ip === "string" && ip.startsWith("::ffff:")) {
-                ip = ip.substring(7);
-            }
+            const ip = getClientIp(req);
 
             // Validate IP before making external request (SSRF protection)
             const { isIP } = await import("net");
@@ -284,7 +272,7 @@ router.post(
 router.get("/favorites", async (req: Request, res: Response): Promise<any> => {
     try {
         const token = parseServiceToken(req);
-        if (!token && !isDev) {
+        if (!token.ok && !isDev) {
             return res.status(401).json({ status: "error", error: "Unauthorized" });
         }
         const pid = token?.pid ?? 0;
@@ -304,7 +292,7 @@ router.get("/favorites", async (req: Request, res: Response): Promise<any> => {
 router.post("/favorites", async (req: Request, res: Response): Promise<any> => {
     try {
         const token = parseServiceToken(req);
-        if (!token && !isDev) {
+        if (!token.ok && !isDev) {
             return res.status(401).json({ status: "error", error: "Unauthorized" });
         }
         const pid = token?.pid ?? 0;
@@ -341,7 +329,7 @@ router.post("/favorites", async (req: Request, res: Response): Promise<any> => {
 router.get("/reminders", async (req: Request, res: Response): Promise<any> => {
     try {
         const token = parseServiceToken(req);
-        if (!token && !isDev) {
+        if (!token.ok && !isDev) {
             return res.status(401).json({ status: "error", error: "Unauthorized" });
         }
         const pid = token?.pid ?? 0;
@@ -368,7 +356,7 @@ router.get("/reminders", async (req: Request, res: Response): Promise<any> => {
 router.get("/reminders/check", async (req: Request, res: Response): Promise<any> => {
     try {
         const token = parseServiceToken(req);
-        if (!token && !isDev) {
+        if (!token.ok && !isDev) {
             return res.status(401).json({ status: "error", error: "Unauthorized" });
         }
         const pid = token?.pid ?? 0;
@@ -393,7 +381,7 @@ router.get("/reminders/check", async (req: Request, res: Response): Promise<any>
 router.post("/reminders", async (req: Request, res: Response): Promise<any> => {
     try {
         const token = parseServiceToken(req);
-        if (!token && !isDev) {
+        if (!token.ok && !isDev) {
             return res.status(401).json({ status: "error", error: "Unauthorized" });
         }
         const pid = token?.pid ?? 0;
@@ -437,7 +425,7 @@ router.post("/reminders", async (req: Request, res: Response): Promise<any> => {
 router.delete("/reminders", async (req: Request, res: Response): Promise<any> => {
     try {
         const token = parseServiceToken(req);
-        if (!token && !isDev) {
+        if (!token.ok && !isDev) {
             return res.status(401).json({ status: "error", error: "Unauthorized" });
         }
         const pid = token?.pid ?? 0;

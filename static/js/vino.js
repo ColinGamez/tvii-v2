@@ -529,6 +529,7 @@ var tvii = {
         clearInterval(window.infoUpdInterval);
         clearInterval(window.clockInterval);
         clearTimeout(window.clockTimeout);
+        clearInterval(window.inputCheckInterval);
     },
     setButtonActions: function () {
         function escapeForClassSelector(str) {
@@ -600,7 +601,7 @@ var tvii = {
         var maxSpeed = 40;
         var deadZone = 0.05;
 
-        var inputCheck = setInterval(function () {
+        window.inputCheckInterval = setInterval(function () {
             wiiu.gamepad.update();
 
             var dx = wiiu.gamepad.lStickX;
@@ -4984,6 +4985,7 @@ function initVinoHome() {
             vino.soundPlayVolume("SE_WAVE_CANCEL", 30);
 
             clearInterval(miiUserDetailInterval);
+            miiUserDetailInterval = null;
             miiDetModal.empty();
             miiDetModal.hide();
             miiDetModal = null;

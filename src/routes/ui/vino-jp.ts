@@ -2,7 +2,7 @@ import express, { type Request, type Response, type Router } from "express";
 import { join } from "path";
 import { parseServiceToken } from "../../utils/serviceToken.ts";
 import { db } from "../../utils/db.ts";
-import { getRegion } from "../../utils/other.ts";
+import { getRegion, getClientIp } from "../../utils/other.ts";
 import Mii from "@pretendonetwork/mii-js";
 import { logger } from "../../utils/logger.ts";
 
@@ -145,18 +145,7 @@ router.get("/index.html", async (req: Request, res: Response): Promise<any> => {
                 }
 
                 // Extract real IP (Cloudflare first)
-                let ip =
-                    req.headers["cf-connecting-ip"] ||
-                    req.headers["x-forwarded-for"] ||
-                    req.ip;
-
-                if (typeof ip === "string" && ip.includes(",")) {
-                    ip = ip.split(",")[0]!.trim();
-                }
-
-                if (typeof ip === "string" && ip.startsWith("::ffff:")) {
-                    ip = ip.substring(7);
-                }
+                const ip = getClientIp(req);
 
                 // timezone lookup (validate IP first to prevent SSRF)
                 const { isIP } = await import("net");

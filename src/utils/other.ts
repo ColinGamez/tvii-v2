@@ -27,3 +27,21 @@ export function getRegion(country: string): "USA" | "EUR" | "JPN" {
     if (NN_COUNTRIES.USA.includes(c)) return "USA";
     return "EUR";
 }
+
+/** Extract the real client IP from a request (Cloudflare → X-Forwarded-For → req.ip). */
+export function getClientIp(req: { headers: Record<string, any>; ip?: string }): string | undefined {
+    let ip: string | undefined =
+        req.headers["cf-connecting-ip"] as string ||
+        req.headers["x-forwarded-for"] as string ||
+        req.ip;
+
+    if (typeof ip === "string" && ip.includes(",")) {
+        ip = ip.split(",")[0]!.trim();
+    }
+
+    if (typeof ip === "string" && ip.startsWith("::ffff:")) {
+        ip = ip.substring(7);
+    }
+
+    return ip;
+}
