@@ -43,6 +43,9 @@ export const env = createEnv({
     VINO_JP_CONFIG_DB_NAME: z.string().min(1),
     VINO_JP_CONFIG_WHITELIST_DB_NAME: z.string().min(1),
 
+    // Redis password (optional in dev — set in docker-compose & .env)
+    VINO_JP_REDIS_PASSWORD: z.string().optional().default(""),
+
     // These are optional in dev / xmltv mode
     VINO_JP_CONFIG_DC_WEBHOOK_URL: optUrl("https://placeholder.invalid"),
     VINO_JP_CONFIG_BSKY_AES_KEY: optStr("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="), // 32-byte base64

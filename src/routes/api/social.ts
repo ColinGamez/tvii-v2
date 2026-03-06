@@ -1,5 +1,6 @@
 import express, { type Request, type Response, type Router } from "express";
 import multer from "multer";
+import rateLimit from "express-rate-limit";
 import { env } from "../../env.ts";
 import { BskyClient } from "../../utils/bsky.ts";
 import { parseServiceToken } from "../../utils/serviceToken.ts";
@@ -70,6 +71,16 @@ function buildSocialPost(
 }
 
 const router: Router = express.Router();
+
+// Rate-limit write endpoints — 15 requests per 5 minutes per IP
+const socialWriteLimiter = rateLimit({
+    windowMs: 5 * 60 * 1000,
+    max: 15,
+    standardHeaders: true,
+    legacyHeaders: false,
+    message: { error: "Too many requests, please try again later" },
+});
+router.use(socialWriteLimiter);
 
 const upload = multer();
 

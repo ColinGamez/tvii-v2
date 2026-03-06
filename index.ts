@@ -4,6 +4,7 @@ import { access } from "./src/middleware/access.ts";
 import { join } from "path";
 import { exports } from "./src/routes/exports.ts";
 import { logger } from "./src/utils/logger.ts";
+import { db, db_whitelist, redis } from "./src/utils/db.ts";
 
 const app: Application = express();
 const port: number = env.VINO_JP_CONFIG_PORT;
@@ -63,7 +64,26 @@ process.on("unhandledRejection", (reason) => {
     logger.error("Unhandled rejection: %O", reason);
 });
 
+// Health check — unauthenticated, lightweight
+app.get("/health", (_req: Request, res: Response) => {
+    res.status(200).json({ status: "ok" });
+});
+
 // Starts the HTTP server (nginx handles TLS termination for Wii U compatibility)
-app.listen(port, () => {
+const server = app.listen(port, () => {
     logger.info("Server is running on port: %d!", port);
 });
+
+// ── Graceful shutdown ────────────────────────────────────────
+function shutdown(signal: string) {
+    logger.info("Received %s — shutting down gracefully…", signal);
+    server.close(async () => {
+        try { await redis.quit(); } catch { /* already closed */ }
+        try { await db.destroy(); } catch { /* already closed */ }
+        try { await db_whitelist.destroy(); } catch { /* already closed */ }
+        logger.info("Cleanup complete. Exiting.");
+        process.exit(0);
+    });
+}
+process.on("SIGTERM", () => shutdown("SIGTERM"));
+process.on("SIGINT", () => shutdown("SIGINT"));

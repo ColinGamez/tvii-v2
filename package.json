@@ -30,6 +30,7 @@
     "cheerio": "^1.1.2",
     "ejs": "^4.0.1",
     "express": "^5.2.1",
+    "express-rate-limit": "^8.3.0",
     "ioredis": "^5.9.2",
     "knex": "^3.1.0",
     "multer": "^2.0.2",

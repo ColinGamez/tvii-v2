@@ -28,6 +28,8 @@ export const db_whitelist = knex({
 });
 
 /** Shared Redis singleton — use this instead of creating new Redis() per module */
-export const redis = new Redis();
+export const redis = new Redis({
+    password: env.VINO_JP_REDIS_PASSWORD || undefined,
+});
 
 redis.on("error", (err) => logger.error("Redis connection error: %s", err.message));
